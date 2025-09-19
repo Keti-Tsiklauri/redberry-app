@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Pagination from "./Pagination";
+import Filter from "./Filter";
 
 interface Product {
   id: number;
@@ -22,6 +23,7 @@ export default function Products() {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+  const [sortOption, setSortOption] = useState("");
 
   const fetchProducts = async (page: number) => {
     setLoading(true);
@@ -46,15 +48,30 @@ export default function Products() {
     fetchProducts(currentPage);
   }, [currentPage]);
 
+  // Sorted products based on selected option
+  const sortedProducts = [...products].sort((a, b) => {
+    if (sortOption === "New products first") {
+      return Number(b.release_year) - Number(a.release_year);
+    } else if (sortOption === "Price: Low to High") {
+      return a.price - b.price;
+    } else if (sortOption === "Price: High to Low") {
+      return b.price - a.price;
+    }
+    return 0;
+  });
+
   if (loading) return <p>Loading products...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
   if (!products.length) return <p>No products found.</p>;
 
   return (
     <div className="flex flex-col items-center">
+      {/* Pass sort state callback to Filter */}
+      <Filter onSortChange={setSortOption} selectedSort={sortOption} />
+
       {/* Products grid */}
       <div className="grid grid-cols-4 gap-6 p-6">
-        {products.map((product) => (
+        {sortedProducts.map((product) => (
           <div key={product.id} className="w-[412px] h-[614px] flex flex-col">
             <Image
               src={product.cover_image}
@@ -75,7 +92,7 @@ export default function Products() {
 
       {/* Pagination */}
       <Pagination
-        totalPages={lastPage} // from API meta.last_page
+        totalPages={lastPage}
         currentPage={currentPage}
         onPageChange={(page) => setCurrentPage(page)}
       />
