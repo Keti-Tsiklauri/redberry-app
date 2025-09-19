@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 
 interface PaginationProps {
   totalPages: number;
@@ -23,27 +24,18 @@ export default function Pagination({
   const getPages = () => {
     const pages: (number | string)[] = [];
 
-    // Left side: currentPage and currentPage + 1
-    if (currentPage + 1 <= totalPages) {
-      pages.push(currentPage, currentPage + 1);
-    } else {
-      pages.push(currentPage - 1, currentPage); // shift back if on last page
-    }
+    // Show current and next
+    pages.push(currentPage, currentPage + 1);
 
-    // Ellipsis (only if gap exists)
-    if (
-      Math.max(...(pages.filter((p) => typeof p === "number") as number[])) <
-      totalPages - 1
-    ) {
+    // If not near the end → add dots
+    if (currentPage + 2 < totalPages - 1) {
       pages.push("...");
     }
 
-    // Right side: last two pages
-    if (totalPages > 1) {
-      pages.push(totalPages - 1, totalPages);
-    }
+    // Always include last two
+    pages.push(totalPages - 1, totalPages);
 
-    // Clean up: unique, valid, sorted
+    // Deduplicate + validate
     return Array.from(new Set(pages))
       .filter(
         (p) =>
@@ -59,31 +51,34 @@ export default function Pagination({
   return (
     <div className="flex justify-center items-center mt-10 gap-2">
       {/* Prev */}
-      <button
+      <Image
+        src="./chevron-left.svg"
+        alt="prev"
+        width={20}
+        height={20}
         onClick={handlePrev}
-        disabled={currentPage === 1}
-        className="w-8 h-8 flex justify-center items-center bg-white border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-50"
-      >
-        &lt;
-      </button>
+        className={`${
+          currentPage === 1 ? "opacity-30 cursor-not-allowed" : "cursor-pointer"
+        }`}
+      />
 
       {/* Page buttons */}
       {pages.map((page, idx) =>
         page === "..." ? (
           <span
-            key={idx}
+            key={`dots-${idx}`}
             className="w-8 h-8 flex justify-center items-center text-gray-400"
           >
-            ...
+            {page}
           </span>
         ) : (
           <button
-            key={page}
-            onClick={() => onPageChange(page as number)}
-            className={`w-8 h-8 flex justify-center items-center rounded border font-medium ${
+            key={`page-${page}`}
+            onClick={() => onPageChange(Number(page))}
+            className={`w-8 h-8 flex justify-center items-center rounded font-[500] text-[14px] leading-[20px] font-[Poppins] ${
               page === currentPage
-                ? "border-[#FF4000] bg-white text-[#FF4000]"
-                : "border-gray-200 bg-white text-gray-700 opacity-60"
+                ? "border border-[#FF4000] text-[#FF4000]" // Active style
+                : "text-[#212B36] opacity-60 hover:bg-gray-200" // Default style
             }`}
           >
             {page}
@@ -92,13 +87,18 @@ export default function Pagination({
       )}
 
       {/* Next */}
-      <button
+      <Image
+        src="./chevron-right.svg"
+        alt="next"
+        width={20}
+        height={20}
         onClick={handleNext}
-        disabled={currentPage === totalPages}
-        className="w-8 h-8 flex justify-center items-center bg-white border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-50"
-      >
-        &gt;
-      </button>
+        className={`${
+          currentPage === totalPages
+            ? "opacity-30 cursor-not-allowed"
+            : "cursor-pointer"
+        }`}
+      />
     </div>
   );
 }
