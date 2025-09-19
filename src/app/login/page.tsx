@@ -100,6 +100,26 @@ export default function Login() {
                 />
               </div>
             </div>
+            {/* login button  */}
+
+            <div className="mt-[45px]">
+              {/* Log In Button */}
+              <button className="flex justify-center items-center w-[554px] h-[41px] px-5 py-2.5 gap-2.5 bg-[#FF4000] rounded-[10px] cursor-pointer">
+                <p className="w-[41px] h-[21px] font-poppins font-normal text-[14px] leading-[21px] text-white">
+                  Log In
+                </p>
+              </button>
+
+              {/* Register Link */}
+              <div className="flex justify-center mt-3 gap-x-2">
+                <p className="font-poppins font-normal text-[14px] leading-[21px] text-[#3E424A]">
+                  Not a member?
+                </p>
+                <p className="font-poppins font-medium text-[14px] leading-[21px] text-[#FF4000] cursor-pointer">
+                  Register
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
