@@ -25,6 +25,9 @@ export default function Products() {
   const [lastPage, setLastPage] = useState(1);
   const [sortOption, setSortOption] = useState("");
 
+  const [priceFrom, setPriceFrom] = useState<number | null>(null);
+  const [priceTo, setPriceTo] = useState<number | null>(null);
+
   const fetchProducts = async (page: number) => {
     setLoading(true);
     try {
@@ -48,7 +51,7 @@ export default function Products() {
     fetchProducts(currentPage);
   }, [currentPage]);
 
-  // Sorted products based on selected option
+  // Sorted products
   const sortedProducts = [...products].sort((a, b) => {
     if (sortOption === "New products first") {
       return Number(b.release_year) - Number(a.release_year);
@@ -60,18 +63,34 @@ export default function Products() {
     return 0;
   });
 
+  // Filtered products based on price
+  const filteredProducts = sortedProducts.filter((product) => {
+    if (priceFrom !== null && product.price < priceFrom) return false;
+    if (priceTo !== null && product.price > priceTo) return false;
+    return true;
+  });
+
   if (loading) return <p>Loading products...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
   if (!products.length) return <p>No products found.</p>;
 
   return (
     <div className="flex flex-col items-center">
-      {/* Pass sort state callback to Filter */}
-      <Filter onSortChange={setSortOption} selectedSort={sortOption} />
+      {/* Filter + Sort */}
+      <Filter
+        selectedSort={sortOption}
+        onSortChange={setSortOption}
+        selectedFrom={priceFrom}
+        selectedTo={priceTo}
+        onPriceChange={(from, to) => {
+          setPriceFrom(from);
+          setPriceTo(to);
+        }}
+      />
 
       {/* Products grid */}
       <div className="grid grid-cols-4 gap-6 p-6">
-        {sortedProducts.map((product) => (
+        {filteredProducts.map((product) => (
           <div key={product.id} className="w-[412px] h-[614px] flex flex-col">
             <Image
               src={product.cover_image}
