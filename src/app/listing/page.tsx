@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Logo from "../components/Logo";
 import Image from "next/image";
+import Products from "../components/Products";
 interface User {
   id: number;
   username: string;
@@ -69,6 +70,7 @@ export default function ListingPage() {
           </div>
         </div>
       </div>
+      <Products />
     </div>
   );
 }
