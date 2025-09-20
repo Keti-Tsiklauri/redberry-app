@@ -75,7 +75,7 @@ export default function Products() {
   if (!products.length) return <p>No products found.</p>;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col min-h-screen">
       {/* Filter + Sort */}
       <Filter
         selectedSort={sortOption}
@@ -89,7 +89,7 @@ export default function Products() {
       />
 
       {/* Products grid */}
-      <div className="grid grid-cols-4 gap-6 p-6">
+      <div className="flex-1 w-[1720px] mx-auto grid grid-cols-4 gap-6 p-6">
         {filteredProducts.map((product) => (
           <div key={product.id} className="w-[412px] h-[614px] flex flex-col">
             <Image
@@ -109,12 +109,14 @@ export default function Products() {
         ))}
       </div>
 
-      {/* Pagination */}
-      <Pagination
-        totalPages={lastPage}
-        currentPage={currentPage}
-        onPageChange={(page) => setCurrentPage(page)}
-      />
+      {/* Pagination fixed at bottom of viewport */}
+      <div className="w-full pb-5 z-50">
+        <Pagination
+          totalPages={lastPage}
+          currentPage={currentPage}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
+      </div>
     </div>
   );
 }

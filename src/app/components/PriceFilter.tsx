@@ -18,6 +18,13 @@ export default function PriceFilter({
   const handleApply = () => {
     const fromNum = from ? Number(from) : null;
     const toNum = to ? Number(to) : null;
+
+    // Check if To is greater than From
+    if (fromNum !== null && toNum !== null && toNum <= fromNum) {
+      alert('"To" price must be greater than "From" price.');
+      return;
+    }
+
     onApply(fromNum, toNum);
   };
 

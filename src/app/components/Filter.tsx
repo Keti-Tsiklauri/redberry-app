@@ -26,11 +26,6 @@ export default function Filter({
     setShowSort(false);
   };
 
-  const handlePriceApply = (from: number | null, to: number | null) => {
-    onPriceChange(from, to);
-    setShowPriceSort(false);
-  };
-
   return (
     <div className="w-[1720px] flex justify-between mx-auto relative">
       <p className="w-[190px] h-[63px] font-poppins font-semibold text-[42px] leading-[63px] text-[#10151F]">
