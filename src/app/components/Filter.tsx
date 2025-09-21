@@ -5,52 +5,36 @@ import PriceFilter from "./PriceFilter";
 import SortByDropdown from "./SortByDropdown";
 
 interface FilterProps {
-  onProductsChange: (products: any[]) => void; // allow any
+  selectedFrom: number | null;
+  selectedTo: number | null;
+  selectedSort: string;
+  onPriceChange: (from: number | null, to: number | null) => void;
+  onSortChange: (sort: string) => void;
 }
 
-export default function Filter({ onProductsChange }: FilterProps) {
-  const [selectedSort, setSelectedSort] = useState("New products first");
-  const [selectedFrom, setSelectedFrom] = useState<number | null>(null);
-  const [selectedTo, setSelectedTo] = useState<number | null>(null);
+export default function Filter({
+  selectedFrom,
+  selectedTo,
+  selectedSort,
+  onPriceChange,
+  onSortChange,
+}: FilterProps) {
   const [showSort, setShowSort] = useState(false);
   const [showPriceSort, setShowPriceSort] = useState(false);
 
-  const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
+  const [localFrom, setLocalFrom] = useState<number | null>(selectedFrom);
+  const [localTo, setLocalTo] = useState<number | null>(selectedTo);
+  const [localSort, setLocalSort] = useState(selectedSort);
 
-  const fetchProducts = async (
-    sort: string,
-    from: number | null,
-    to: number | null
-  ) => {
-    const params = new URLSearchParams();
-
-    if (from !== null) params.append("filter[price_from]", from.toString());
-    if (to !== null) params.append("filter[price_to]", to.toString());
-
-    if (sort === "New products first") params.append("sort", "created_at");
-    if (sort === "Price: Low to High") params.append("sort", "price");
-    if (sort === "Price: High to Low") params.append("sort", "-price");
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/products?${params.toString()}`);
-      const data = await res.json();
-      onProductsChange(data.data || []);
-    } catch (err) {
-      console.error("Failed to fetch products:", err);
-    }
-  };
-
-  // Refetch products whenever sort or filter changes
+  // Sync local state if props change (for URL updates)
   useEffect(() => {
-    fetchProducts(selectedSort, selectedFrom, selectedTo);
-  }, [selectedSort, selectedFrom, selectedTo]);
+    setLocalFrom(selectedFrom);
+    setLocalTo(selectedTo);
+    setLocalSort(selectedSort);
+  }, [selectedFrom, selectedTo, selectedSort]);
 
   return (
     <div className="w-[1720px] flex justify-between mx-auto relative">
-      <p className="w-[190px] h-[63px] font-poppins font-semibold text-[42px] leading-[63px] text-[#10151F]">
-        Products
-      </p>
-
       <div className="flex gap-8 items-center">
         {/* Price filter button */}
         <div
@@ -79,27 +63,30 @@ export default function Filter({ onProductsChange }: FilterProps) {
               src="/chevron-down.svg"
             />
           </div>
-          so
+
           {showSort && (
             <div className="absolute right-0 mt-8 z-10">
               <SortByDropdown
-                selected={selectedSort}
+                selected={localSort}
                 onSelect={(option) => {
-                  setSelectedSort(option);
+                  setLocalSort(option);
+                  onSortChange(option); // notify parent
                   setShowSort(false);
                 }}
               />
             </div>
           )}
-          {/* price filter */}
+
+          {/* Price filter */}
           {showPriceSort && (
             <div className="absolute right-0 mt-8 z-10">
               <PriceFilter
-                selectedFrom={selectedFrom}
-                selectedTo={selectedTo}
+                selectedFrom={localFrom}
+                selectedTo={localTo}
                 onApply={(from, to) => {
-                  setSelectedFrom(from);
-                  setSelectedTo(to);
+                  setLocalFrom(from);
+                  setLocalTo(to);
+                  onPriceChange(from, to); // notify parent
                   setShowPriceSort(false);
                 }}
               />
