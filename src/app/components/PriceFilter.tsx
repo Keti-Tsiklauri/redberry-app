@@ -42,9 +42,6 @@ export default function PriceFilter({
                 <p className="font-poppins font-normal text-sm leading-[21px] text-[#3E424A]">
                   From
                 </p>
-                <span className="font-poppins font-normal text-sm leading-[21px] text-[#FF4000]">
-                  *
-                </span>
               </div>
             )}
             <input
@@ -62,9 +59,6 @@ export default function PriceFilter({
                 <p className="font-poppins font-normal text-sm leading-[21px] text-[#3E424A]">
                   To
                 </p>
-                <span className="font-poppins font-normal text-sm leading-[21px] text-[#FF4000]">
-                  *
-                </span>
               </div>
             )}
             <input

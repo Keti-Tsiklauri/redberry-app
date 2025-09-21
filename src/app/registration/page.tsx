@@ -4,7 +4,7 @@ import Image from "next/image";
 import Logo from "../components/Logo";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-
+import Link from "next/link";
 const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 const REGISTER_ENDPOINT = "/register";
 const API_KEY = process.env.NEXT_PUBLIC_REDBERRY_API_KEY;
@@ -169,7 +169,7 @@ export default function Registration() {
         setAvatar(null);
         setBackendErrors({});
 
-        router.push("/listing");
+        router.push("/");
         return;
       }
 
@@ -219,9 +219,12 @@ export default function Registration() {
             width={20}
             height={20}
           />
-          <p className="w-[36px] h-[18px] font-poppins not-italic font-medium text-[12px] leading-[18px] text-[#10151F]">
+          <Link
+            href="/login"
+            className="w-[36px] h-[18px] font-poppins not-italic font-medium text-[12px] leading-[18px] text-[#10151F]"
+          >
             Log in
-          </p>
+          </Link>
         </div>
       </div>
 

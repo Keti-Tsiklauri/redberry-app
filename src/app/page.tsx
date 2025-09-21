@@ -63,11 +63,26 @@ export default function Home() {
             )}
 
             {user && token ? (
-              ""
+              <Link
+                href="/registration"
+                onClick={() => {
+                  localStorage.removeItem("authToken");
+                  localStorage.removeItem("userData");
+                  localStorage.removeItem("userId");
+                  localStorage.removeItem("userEmail");
+                  localStorage.removeItem("username");
+
+                  document.cookie =
+                    "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                }}
+                className="cursor-pointer hover:underline w-[50px] h-[28px] font-poppins not-italic font-medium whitespace-nowrap text-[#10151F]"
+              >
+                Log out
+              </Link>
             ) : (
               <Link
                 href="/login"
-                className=" cursor-pointer hover:underline w-[50px] h-[28px] font-poppins not-italic font-medium   text-[#10151F]"
+                className=" cursor-pointer hover:underline w-[50px] h-[28px] whitespace-nowrap font-poppins not-italic font-medium   text-[#10151F]"
               >
                 Log in
               </Link>

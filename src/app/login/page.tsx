@@ -4,12 +4,13 @@ import Logo from "../components/Logo";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
 export default function Login() {
   const [show, setShow] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [backendErrors, setBackendErrors] = useState<string[]>([]);
 
   const router = useRouter();
 
@@ -19,12 +20,7 @@ export default function Login() {
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
-
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
+    setBackendErrors([]);
 
     setIsLoading(true);
 
@@ -41,44 +37,56 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("Content-Type") || "";
+      let data: any = {};
+
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        data = { message: text };
+      }
 
       if (response.ok) {
-        // Store token in localStorage and cookie
+        // Save token
         if (data.token) {
           localStorage.setItem("authToken", data.token);
           document.cookie = `authToken=${data.token}; path=/;`;
-          console.log("Saved token:", data.token); // <-- log token
+          console.log("Saved token:", data.token);
         }
 
-        // Store user info
+        // Save user info
         if (data.user) {
           localStorage.setItem("userData", JSON.stringify(data.user));
           localStorage.setItem("userId", data.user.id.toString());
           localStorage.setItem("userEmail", data.user.email);
           localStorage.setItem("username", data.user.username);
-          console.log("Saved user data:", data.user); // <-- log user info
+          console.log("Saved user data:", data.user);
         }
 
+        // Reset fields
         setEmail("");
         setPassword("");
-        setError("");
+        setBackendErrors([]);
 
-        router.push("/"); // redirect after login
+        router.push("/");
       } else {
-        setError(
-          data.message ||
-            data.error ||
-            (response.status === 401
-              ? "Invalid email or password"
-              : "Login failed")
-        );
+        // Show API errors
+        if (data.errors) {
+          // backend returns multiple errors
+          const allErrors = Object.values(data.errors).flat() as string[];
+          setBackendErrors(allErrors);
+        } else if (data.message) {
+          setBackendErrors([data.message]);
+        } else {
+          setBackendErrors([`Login failed (${response.status})`]);
+        }
       }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setBackendErrors([err.message]);
       } else {
-        setError("An unexpected error occurred. Please try again.");
+        setBackendErrors(["Unexpected error occurred"]);
       }
     } finally {
       setIsLoading(false);
@@ -127,9 +135,16 @@ export default function Login() {
             </p>
 
             {/* Error Message */}
-            {error && (
+            {/* Error Messages */}
+            {backendErrors.length > 0 && (
               <div className="w-[554px] mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm font-poppins">{error}</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  {backendErrors.map((err, idx) => (
+                    <li key={idx} className="text-red-600 text-sm font-poppins">
+                      {err}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 
