@@ -16,6 +16,7 @@ interface Product {
   available_colors: string[];
   available_sizes: string[];
 }
+// Filter.tsx
 
 export default function ProductsList() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -77,16 +78,7 @@ export default function ProductsList() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Filter + Sort */}
-      <Filter
-        selectedSort={sortOption}
-        onSortChange={setSortOption}
-        selectedFrom={priceFrom}
-        selectedTo={priceTo}
-        onPriceChange={(from, to) => {
-          setPriceFrom(from);
-          setPriceTo(to);
-        }}
-      />
+      <Filter onProductsChange={setProducts} />
 
       {/* Products grid */}
       <div className="flex-1 w-[1720px] mx-auto grid grid-cols-4 gap-6 p-6">

@@ -4,7 +4,7 @@ import { useState } from "react";
 interface PriceFilterProps {
   selectedFrom: number | null;
   selectedTo: number | null;
-  onApply: (from: number | null, to: number | null) => void;
+  onApply: (from: number | null, to: number | null) => void; // only price range
 }
 
 export default function PriceFilter({
@@ -19,13 +19,12 @@ export default function PriceFilter({
     const fromNum = from ? Number(from) : null;
     const toNum = to ? Number(to) : null;
 
-    // Check if To is greater than From
     if (fromNum !== null && toNum !== null && toNum <= fromNum) {
       alert('"To" price must be greater than "From" price.');
       return;
     }
 
-    onApply(fromNum, toNum);
+    onApply(fromNum, toNum); // ✅ just pass numbers, parent handles API
   };
 
   return (
@@ -36,44 +35,26 @@ export default function PriceFilter({
       <div className="flex flex-col gap-2.5">
         <div className="flex flex-row gap-2.5">
           {/* From input */}
-          <div className="relative w-[175px] h-[42px] ">
-            {from === "" && (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                <p className="font-poppins font-normal text-sm leading-[21px] text-[#3E424A]">
-                  From
-                </p>
-              </div>
-            )}
-            <input
-              type="number"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="w-full h-full px-3 outline-none border border-[#E1DFE1] rounded-lg font-poppins text-sm text-[#3E424A]"
-            />
-          </div>
-
+          <input
+            type="number"
+            placeholder="From"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="w-[175px] h-[42px] px-3 border border-[#E1DFE1] rounded-lg"
+          />
           {/* To input */}
-          <div className="relative w-[175px] h-[42px]">
-            {to === "" && (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                <p className="font-poppins font-normal text-sm leading-[21px] text-[#3E424A]">
-                  To
-                </p>
-              </div>
-            )}
-            <input
-              type="number"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="w-full h-full px-3 outline-none border border-[#E1DFE1] rounded-lg font-poppins text-sm text-[#3E424A]"
-            />
-          </div>
+          <input
+            type="number"
+            placeholder="To"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="w-[175px] h-[42px] px-3 border border-[#E1DFE1] rounded-lg"
+          />
         </div>
 
-        {/* Apply button */}
         <button
           onClick={handleApply}
-          className="cursor-pointer self-end flex justify-center items-center px-5 py-2.5 w-[124px] h-[41px] bg-[#FF4000] rounded-[10px] text-white font-poppins font-medium"
+          className="self-end px-5 py-2.5 w-[124px] h-[41px] bg-[#FF4000] rounded-[10px] text-white font-poppins font-medium"
         >
           Apply
         </button>
