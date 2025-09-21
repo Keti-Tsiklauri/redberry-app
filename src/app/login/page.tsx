@@ -3,7 +3,7 @@ import { useState, FormEvent } from "react";
 import Logo from "../components/Logo";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
+import Link from "next/link";
 export default function Login() {
   const [show, setShow] = useState(true);
   const [email, setEmail] = useState("");
@@ -64,7 +64,7 @@ export default function Login() {
         setPassword("");
         setError("");
 
-        router.push("/listing"); // redirect after login
+        router.push("/"); // redirect after login
       } else {
         setError(
           data.message ||
@@ -97,9 +97,12 @@ export default function Login() {
             width={20}
             height={20}
           />
-          <p className="w-[36px] h-[18px] font-poppins not-italic font-medium text-[12px] leading-[18px] text-[#10151F]">
-            Log In
-          </p>
+          <Link
+            className="w-[50px] h-[18px] font-poppins not-italic font-medium text-[12px] leading-[18px] text-[#10151F]"
+            href="/registration"
+          >
+            Register
+          </Link>
         </div>
       </div>
 

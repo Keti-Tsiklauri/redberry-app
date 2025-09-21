@@ -17,7 +17,7 @@ interface Product {
   available_sizes: string[];
 }
 
-export default function Products() {
+export default function ProductsList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

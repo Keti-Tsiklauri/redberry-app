@@ -109,39 +109,9 @@ export default function Registration() {
     }
   };
 
-  const checkPasswordMatch = () => {
-    if (password && repeatPassword && password !== repeatPassword) {
-      setBackendErrors((prev) => ({
-        ...prev,
-        password_confirmation: ["Passwords do not matches"],
-      }));
-      return false;
-    } else if (backendErrors.password_confirmation) {
-      setBackendErrors((prev) => ({
-        ...prev,
-        password_confirmation: undefined,
-      }));
-      return true;
-    }
-    return true;
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setBackendErrors({});
-
-    if (!username || !email || !password || !repeatPassword) {
-      setBackendErrors({ general: ["Please fill in all required fields"] });
-      return;
-    }
-
-    if (password !== repeatPassword) {
-      setBackendErrors({
-        password_confirmation: ["Passwords do not matches"],
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -203,19 +173,8 @@ export default function Registration() {
         return;
       }
 
-      if (response.status === 422 && data.errors) {
-        setBackendErrors(data.errors);
-      } else if (response.status === 409) {
-        setBackendErrors({
-          general: [
-            data.message || "User with this email or username already exists",
-          ],
-        });
-      } else if (response.status === 500) {
-        setBackendErrors({
-          general: ["Server error. Please try again later."],
-        });
-      } else if (data.errors) {
+      // Always rely on backend messages
+      if (data.errors) {
         setBackendErrors(data.errors);
       } else if (data.message) {
         setBackendErrors({ general: [data.message] });
@@ -504,9 +463,7 @@ export default function Registration() {
                         "password_confirmation",
                         e.target.value
                       );
-                      setTimeout(() => checkPasswordMatch(), 0);
                     }}
-                    onBlur={checkPasswordMatch}
                     disabled={isLoading}
                     className="absolute w-full h-full left-0 top-0 px-3 bg-transparent outline-none font-poppins text-sm text-[#3E424A]"
                   />
