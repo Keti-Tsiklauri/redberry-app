@@ -95,7 +95,12 @@ export default function ProductDetailPage() {
             ))}
           </div>
           <div className="w-[700px] h-[940px] border-1">
-            <Image src={selectedImage} alt="product" width={700} height={940} />
+            <Image
+              src={selectedImage || "/placeholder.png"}
+              alt="product"
+              width={700}
+              height={940}
+            />
           </div>
         </div>
         <div className="w-[700px] h-[900px] flex flex-col gap-[56px]">
