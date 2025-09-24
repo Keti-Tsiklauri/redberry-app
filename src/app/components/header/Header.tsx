@@ -3,6 +3,8 @@ import Link from "next/link";
 import Logo from "../Logo";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import Cart from "../Cart";
+import { useGlobal } from "../context/globalcontext";
 
 interface User {
   id: number;
@@ -14,7 +16,7 @@ interface User {
 export default function Header() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-
+  const { showCart, setShowCart } = useGlobal();
   useEffect(() => {
     const savedToken = localStorage.getItem("authToken");
     const savedUser = localStorage.getItem("userData");
@@ -43,6 +45,7 @@ export default function Header() {
 
   return (
     <header className="flex flex-row justify-between items-center mx-auto py-[10px] w-[1920px] h-[80px] bg-white">
+      {showCart && <Cart />}
       <Logo />
 
       <div className="flex items-center gap-3">
@@ -51,6 +54,8 @@ export default function Header() {
           width={24}
           height={24}
           alt="shopping cart"
+          className="cursor-pointer"
+          onClick={() => setShowCart(true)}
         />
         <div className="flex gap-2 items-center">
           {user?.avatar ? (

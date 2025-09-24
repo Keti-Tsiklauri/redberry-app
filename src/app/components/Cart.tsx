@@ -3,8 +3,10 @@
 import Image from "next/image";
 import { useCart } from "./CartContext";
 import { useEffect } from "react";
+import { useGlobal } from "./context/globalcontext";
 
 export default function Cart() {
+  const { showCart, setShowCart } = useGlobal();
   const { cart, removeFromCart, updateQuantity, totalPrice } = useCart();
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function Cart() {
   };
 
   return (
-    <div className="absolute right-0 bottom-0 w-[540px] h-[1080px] bg-[#F8F6F7] border-l border-[#E1DFE1] box-border p-[40px] overflow-y-auto">
+    <div className="z-[100] absolute right-0 bottom-0 w-[540px] h-[1080px] bg-[#F8F6F7] border-l border-[#E1DFE1] box-border p-[40px] overflow-y-auto">
       {/* header */}
       <div className="flex justify-between">
         <p className="top-[41px] w-[181px] h-[30px] font-poppins font-medium text-[20px] leading-[30px] text-[#10151F]">
@@ -44,6 +46,7 @@ export default function Cart() {
           height={32}
           alt="close icon"
           className="cursor-pointer"
+          onClick={() => setShowCart(false)}
         />
       </div>
 

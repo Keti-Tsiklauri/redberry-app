@@ -6,6 +6,8 @@ import Pagination from "./Pagination";
 import Filter from "./Filter";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useGlobal } from "./context/globalcontext";
+
 interface Product {
   id: number;
   name: string;
@@ -29,8 +31,9 @@ export default function ProductsList() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { showCart } = useGlobal(); // 👈 get global showCart state
 
-  // State for filters
+  // filters state
   const [priceFrom, setPriceFrom] = useState<number | null>(
     searchParams.get("price_from")
       ? Number(searchParams.get("price_from"))
@@ -108,9 +111,6 @@ export default function ProductsList() {
 
     const newUrl = `/?${new URLSearchParams(query).toString()}`;
     router.push(newUrl, { scroll: false });
-
-    // This URL can now be shared and will show the same results
-    console.log("Shareable URL:", window.location.origin + newUrl);
   };
 
   // Apply filters
@@ -122,7 +122,7 @@ export default function ProductsList() {
     setPriceFrom(from);
     setPriceTo(to);
     setSortOption(sort);
-    setCurrentPage(1); // Reset to page 1 when filters change
+    setCurrentPage(1);
     updateURL(1, from, to, sort);
   };
 
@@ -141,7 +141,10 @@ export default function ProductsList() {
   const endResult = Math.min(currentPage * resultsPerPage, totalResults);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen transition-all ">
+      {showCart && (
+        <div className="absolute top-0 left-0 w-screen h-screen bg-[#10151F] opacity-30 z-40" />
+      )}
       <div className="w-[1720px] flex justify-between mx-auto relative">
         <p className="w-[190px] h-[63px] font-poppins font-semibold text-[42px] leading-[63px] text-[#10151F]">
           Products
@@ -161,7 +164,7 @@ export default function ProductsList() {
         </div>
       </div>
       {/* Products grid */}
-      <div className="flex-1 w-[1720px] mx-auto grid grid-cols-4 gap-6 p-6 ">
+      <div className="flex-1 w-[1720px] mx-auto grid grid-cols-4 gap-6 p-6">
         {products.map((product) => (
           <div
             key={product.id}
@@ -185,7 +188,6 @@ export default function ProductsList() {
           </div>
         ))}
       </div>
-
       {/* Pagination */}
       <div className="w-full pb-5 z-50">
         <Pagination
