@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
-import Logo from "../Logo";
+import Logo from "../logo/Logo";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import Cart from "../Cart";
+import Cart from "../cart/Cart";
 import { useGlobal } from "../context/globalcontext";
 
 interface User {

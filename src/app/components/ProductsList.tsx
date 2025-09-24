@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Pagination from "./Pagination";
-import Filter from "./Filter";
+import Filter from "./filter/Filter";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGlobal } from "./context/globalcontext";

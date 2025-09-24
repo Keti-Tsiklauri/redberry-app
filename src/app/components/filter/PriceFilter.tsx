@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import Button from "./Button";
+import Button from "../button/Button";
 interface PriceFilterProps {
   selectedFrom: number | null;
   selectedTo: number | null;

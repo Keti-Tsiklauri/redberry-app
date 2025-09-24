@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Logo from "../components/Logo";
+import Logo from "../components/logo/Logo";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Button from "../components/Button";
+import Button from "../components/button/Button";
 const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 const REGISTER_ENDPOINT = "/register";
 const API_KEY = process.env.NEXT_PUBLIC_REDBERRY_API_KEY;

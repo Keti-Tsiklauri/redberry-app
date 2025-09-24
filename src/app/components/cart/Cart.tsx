@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { useCart } from "./CartContext";
 
-import { useGlobal } from "./context/globalcontext";
+import { useGlobal } from "../context/globalcontext";
 import CartItems from "./CartItems";
-import Button from "./Button";
+import Button from "../button/Button";
 import CartSummary from "./CartSummary";
 import EmptyCart from "./EmptyCart";
 

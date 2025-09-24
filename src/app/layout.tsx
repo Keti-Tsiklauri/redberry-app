@@ -1,6 +1,6 @@
 import "./globals.css";
 
-import { CartProvider } from "./components/CartContext";
+import { CartProvider } from "./components/cart/CartContext";
 import { GlobalProvider } from "./components/context/globalcontext";
 
 export default function RootLayout({
