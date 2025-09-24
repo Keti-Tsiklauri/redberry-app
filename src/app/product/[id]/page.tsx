@@ -30,7 +30,7 @@ interface Product {
 }
 
 export default function ProductDetailPage() {
-  const { id } = useParams(); // dynamic route param
+  const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,14 +39,9 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (product) {
-      setSelectedImage(product.cover_image);
-    }
-  }, [product]);
-
   const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 
+  // fetch product
   useEffect(() => {
     if (!id) return;
 
@@ -56,6 +51,13 @@ export default function ProductDetailPage() {
         if (!res.ok) throw new Error("Failed to fetch product");
         const data = await res.json();
         setProduct(data);
+
+        // set defaults: first image, first color, first size
+        if (data.images.length > 0) setSelectedImage(data.images[0]);
+        if (data.available_colors.length > 0)
+          setSelectedColor(data.available_colors[0]);
+        if (data.available_sizes.length > 0)
+          setSelectedSize(data.available_sizes[0]);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -66,34 +68,51 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id]);
 
+  // sync color <-> image by index
+  const handleColorClick = (color: string, index: number) => {
+    setSelectedColor(color);
+    setSelectedImage(product?.images[index] || null);
+  };
+
+  const handleImageClick = (image: string, index: number) => {
+    setSelectedImage(image);
+    setSelectedColor(product?.available_colors[index] || null);
+  };
+
   if (loading) return <p>Loading product...</p>;
   if (error) return <p className="text-red-500">Error: {error}</p>;
   if (!product) return <p>No product found</p>;
-  console.log(product);
+
   return (
     <div>
       <Header />
-      <div className=" mb-8 w-[1820px] mx-auto h-[21px] left-[100px] top-[110px] font-poppins font-light text-[14px] leading-[21px] text-[#10151F] flex flex-row">
+
+      {/* breadcrumb */}
+      <div className="mb-8 w-[1820px] mx-auto font-poppins font-light text-[14px] leading-[21px] text-[#10151F] flex flex-row">
         <Link href="/">
           <p className="text-[#10151F] font-poppins text-[14px]">Listing</p>
         </Link>
         /product
       </div>
+
       <div className="flex flex-row w-[1820px] h-[1230px] justify-between mx-auto">
+        {/* left images */}
         <div className="flex flex-row gap-4">
           <div className="flex flex-col gap-2">
-            {product.images.map((image, id) => (
+            {product.images.map((image, index) => (
               <Image
-                key={id}
-                src={image} // use the current image
-                alt={`product-${id}`}
+                key={index}
+                src={image}
+                alt={`product-${index}`}
                 width={120}
                 height={160}
                 className="cursor-pointer"
-                onClick={() => setSelectedImage(image)} // optional: click to change main image
+                onClick={() => handleImageClick(image, index)}
               />
             ))}
           </div>
+
+          {/* main image */}
           <div className="w-[700px] h-[940px] border-1">
             <Image
               src={selectedImage || "/placeholder.png"}
@@ -103,147 +122,134 @@ export default function ProductDetailPage() {
             />
           </div>
         </div>
+
+        {/* right side */}
         <div className="w-[700px] h-[900px] flex flex-col gap-[56px]">
           <div className="flex flex-col gap-5">
-            <p className="h-[48px] font-poppins not-italic font-semibold text-[32px] leading-[48px] text-[#10151F]">
+            <p className="font-poppins font-semibold text-[32px] text-[#10151F]">
               {product.name}
             </p>
-            <p className="h-[48px] font-poppins not-italic font-semibold text-[32px] leading-[48px] text-[#10151F]">
+            <p className="font-poppins font-semibold text-[32px] text-[#10151F]">
               ${product.price}
             </p>
           </div>
 
           <div className="w-[380px] h-[350px] gap-[48px]">
+            {/* Colors */}
             <div className="flex flex-col gap-5">
-              {/* Label, selected color */}
-              <p className="h-[24px] font-poppins not-italic font-normal text-[16px] leading-[24px] text-[#10151F]">
-                Color:{selectedColor}
+              <p className="font-poppins text-[16px] text-[#10151F]">
+                Color: {selectedColor}
               </p>
-
-              {/* Colors row */}
-              <div className="flex flex-row items-center gap-3 w-[150px] h-[48px]">
+              <div className="flex flex-row gap-3">
                 {product.available_colors.map((color, index) => (
                   <div
                     key={index}
-                    onClick={() => setSelectedColor(color)}
+                    onClick={() => handleColorClick(color, index)}
                     className={`w-[38px] h-[38px] rounded-full flex items-center justify-center cursor-pointer 
-    ${selectedColor === color ? "border border-[#E1DFE1]" : ""}`}
+                      ${
+                        selectedColor === color ? "border border-[#10151F]" : ""
+                      }`}
                   >
                     <div
                       className="w-[28px] h-[28px] rounded-full border border-[#E1DFE1]"
-                      style={{ backgroundColor: color }}
+                      style={{ backgroundColor: color.toLowerCase() }}
                     />
                   </div>
                 ))}
               </div>
-            </div>{" "}
-            <div className="flex flex-col gap-5">
-              {/* Label, select size*/}
-              <p className="h-[24px] font-poppins not-italic font-normal text-[16px] leading-[24px] text-[#10151F]">
-                Size:{selectedSize}
-              </p>
+            </div>
 
-              {/* Colors row */}
-              <div className="flex flex-row items-center gap-3 w-[150px] h-[48px]">
+            {/* Sizes */}
+            <div className="flex flex-col gap-5 mt-6">
+              <p className="font-poppins text-[16px] text-[#10151F]">
+                Size: {selectedSize}
+              </p>
+              <div className="flex flex-row gap-3">
                 {product.available_sizes.map((size, index) => (
                   <div
                     key={index}
                     onClick={() => setSelectedSize(size)}
-                    className={`flex flex-col justify-center items-center px-4 py-[9px] gap-2 w-[70px] h-[42px] rounded-[10px] cursor-pointer 
-      ${
-        selectedSize === size
-          ? "bg-[#F8F6F7] border border-[#10151F]" // selected state
-          : "border border-[#E1DFE1]" // default state
-      }`}
+                    className={`px-4 py-[9px] w-[70px] h-[42px] rounded-[10px] cursor-pointer flex items-center justify-center
+                      ${
+                        selectedSize === size
+                          ? "bg-[#F8F6F7] border border-[#10151F]"
+                          : "border border-[#E1DFE1]"
+                      }`}
                   >
                     <p
-                      className={`font-poppins not-italic font-normal text-[16px] leading-[24px] text-[#10151F] opacity-80 
-        ${selectedSize === size ? "opacity-100 font-medium" : ""}`}
+                      className={`font-poppins text-[16px] text-[#10151F]
+                        ${
+                          selectedSize === size
+                            ? "font-medium opacity-100"
+                            : "opacity-80"
+                        }`}
                     >
                       {size}
                     </p>
                   </div>
                 ))}
               </div>
-              {/* quantity selector */}
-              <div className="flex flex-col gap-5">
-                {/* Label */}
-                <p className="w-[70px] h-[24px] font-poppins not-italic font-normal text-[16px] leading-[24px] text-[#10151F]">
-                  Quantity
-                </p>
+            </div>
 
-                {/* Dropdown */}
-                <div className="relative w-[70px] h-[42px]">
-                  <select
-                    value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value))}
-                    className="flex items-center appearance-none w-full h-full border border-[#E1DFE1] rounded-[10px] px-2 pr-6 text-[16px] font-poppins text-[#10151F] opacity-80 cursor-pointer"
-                  >
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
-                      <option key={num} value={num}>
-                        {num}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Chevron Icon */}
-                  <Image
-                    src="/down.svg"
-                    alt="down"
-                    width={20}
-                    height={20}
-                    className="absolute right-5 top-1/2 transform -translate-y-1/2 pointer-events-none"
-                  />
-                </div>
-              </div>
-              <button className="cursor-pointer flex items-center justify-center gap-2 w-[704px] h-[59px] bg-[#FF4000] rounded-[10px] px-[60px] py-4 text-white font-poppins font-medium text-[18px] leading-[27px]">
-                {/* Shopping cart icon */}
+            {/* Quantity */}
+            <div className="flex flex-col gap-5 mt-6">
+              <p className="font-poppins text-[16px] text-[#10151F]">
+                Quantity
+              </p>
+              <div className="relative w-[70px] h-[42px]">
+                <select
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  className="appearance-none w-full h-full border border-[#E1DFE1] rounded-[10px] px-2 pr-6 text-[16px] font-poppins text-[#10151F] opacity-80 cursor-pointer"
+                >
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
+                </select>
                 <Image
-                  src="/shopping.svg"
-                  alt="cart"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6"
+                  src="/down.svg"
+                  alt="down"
+                  width={20}
+                  height={20}
+                  className="absolute right-5 top-1/2 transform -translate-y-1/2 pointer-events-none"
                 />
-                {/* Text */}
-                Add to cart
-              </button>
-              <hr className="w-[704px] border border-[#E1DFE1] mt-8" />
-              {/* details */}
-              <div className="flex flex-col gap-[7px] w-[704px] h-[159px]">
-                {/* Frame 52 */}
-                <div className="flex flex-row justify-between items-center w-[704px] h-[61px] mt-8">
-                  {/* Details text */}
-                  <p className="w-[69px] h-[30px] font-poppins font-medium text-[20px] leading-[30px] text-[#10151F] ">
-                    Details
-                  </p>
+              </div>
+            </div>
 
-                  {/* Image placeholder */}
+            {/* Add to Cart */}
+            <button className="cursor-pointer flex items-center justify-center gap-2 w-[704px] h-[59px] bg-[#FF4000] rounded-[10px] px-[60px] py-4 text-white font-poppins font-medium text-[18px] leading-[27px] mt-6">
+              <Image src="/shopping.svg" alt="cart" width={24} height={24} />
+              Add to cart
+            </button>
 
-                  <Image
-                    src={product.brand.image}
-                    alt={product.brand.name}
-                    width={109}
-                    height={60}
-                  />
-                </div>
+            <hr className="w-[704px] border border-[#E1DFE1] mt-8" />
 
-                {/* Frame 53 */}
-                <div className="flex flex-col gap-[19px] w-[704px] h-[91px]">
-                  {/* Brand */}
-                  <p className="font-poppins text-[16px] leading-[24px] text-[#3E424A]">
-                    Brand:{product.brand.name}
-                  </p>
-
-                  {/* Description */}
-                  <p className="font-poppins text-[16px] leading-[24px] text-[#3E424A]">
-                    {product.description}
-                  </p>
-                </div>
+            {/* Details */}
+            <div className="flex flex-col gap-[7px] w-[704px] h-[159px]">
+              <div className="flex flex-row justify-between items-center w-[704px] h-[61px] mt-8">
+                <p className="font-poppins font-medium text-[20px] text-[#10151F]">
+                  Details
+                </p>
+                <Image
+                  src={product.brand.image}
+                  alt={product.brand.name}
+                  width={109}
+                  height={60}
+                />
+              </div>
+              <div className="flex flex-col gap-[19px]">
+                <p className="font-poppins text-[16px] text-[#3E424A]">
+                  Brand: {product.brand.name}
+                </p>
+                <p className="font-poppins text-[16px] text-[#3E424A]">
+                  {product.description}
+                </p>
               </div>
             </div>
           </div>
-        </div>{" "}
+        </div>
       </div>
     </div>
   );
