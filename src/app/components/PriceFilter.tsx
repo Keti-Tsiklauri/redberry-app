@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-
+import Button from "./Button";
 interface PriceFilterProps {
   selectedFrom: number | null;
   selectedTo: number | null;
@@ -52,12 +52,14 @@ export default function PriceFilter({
           />
         </div>
 
-        <button
-          onClick={handleApply}
-          className="self-end px-5 py-2.5 w-[124px] h-[41px] bg-[#FF4000] rounded-[10px] text-white font-poppins font-medium"
-        >
-          Apply
-        </button>
+        <div className="self-end">
+          <Button
+            text="Apply"
+            onClick={handleApply}
+            width="124px"
+            height="41px"
+          />
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Header from "@/app/components/header/Header";
 import { useCart } from "@/app/components/CartContext";
+import Button from "@/app/components/Button";
 interface Brand {
   id: number;
   name: string;
@@ -239,13 +240,15 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Add to Cart */}
-            <button
-              onClick={handleAddToCart}
-              className="cursor-pointer flex items-center justify-center gap-2 w-[704px] h-[59px] bg-[#FF4000] rounded-[10px] px-[60px] py-4 text-white font-poppins font-medium text-[18px] leading-[27px] mt-6"
-            >
-              <Image src="/shopping.svg" alt="cart" width={24} height={24} />
-              Add to cart
-            </button>
+            <div className="mt-[40px]">
+              <Button
+                imageSrc="/shopping.svg"
+                text="Add to Cart"
+                onClick={handleAddToCart}
+                height="60px"
+                width="700px"
+              />
+            </div>
 
             <hr className="w-[704px] border border-[#E1DFE1] mt-8" />
 

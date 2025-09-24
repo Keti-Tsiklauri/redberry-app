@@ -79,12 +79,13 @@ export default function Header() {
           )}
 
           {user && token ? (
-            <button
+            <Link
+              href="/"
               onClick={handleLogout}
               className="cursor-pointer hover:underline w-[50px] h-[28px] font-poppins font-medium text-[#10151F] whitespace-nowrap"
             >
               Log out
-            </button>
+            </Link>
           ) : (
             <Link
               href="/login"

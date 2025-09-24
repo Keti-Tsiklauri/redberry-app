@@ -1,16 +1,19 @@
-export default function CartSummary({ subtotal }: { subtotal: number }) {
+import { useCart } from "./CartContext";
+
+export default function CartSummary() {
+  const { totalPrice } = useCart();
   const delivery = 5; // fixed fee
-  const total = subtotal + delivery;
+  const total = totalPrice + delivery;
 
   return (
-    <div className="absolute w-[460px] h-[110px] left-1/2 -translate-x-1/2 top-[769px] flex flex-col gap-4">
+    <div className=" w-[460px] h-[110px]  flex flex-col gap-4">
       {/* Subtotal */}
       <div className="flex justify-between items-center w-[460px] h-6">
         <span className="font-poppins font-normal text-[16px] leading-6 text-[#3E424A]">
           Items subtotal
         </span>
         <span className="font-poppins font-normal text-[16px] leading-6 text-[#3E424A] text-right">
-          ${subtotal.toFixed(2)}
+          ${totalPrice.toFixed(2)}
         </span>
       </div>
 

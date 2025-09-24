@@ -4,6 +4,7 @@ import Logo from "../components/Logo";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Button from "../components/Button";
 
 export default function Login() {
   const [show, setShow] = useState(true);
@@ -201,36 +202,27 @@ export default function Login() {
 
               {/* Login Button */}
               <div className="mt-[45px]">
-                <button
+                <Button
                   type="submit"
-                  disabled={isLoading}
-                  className="flex justify-center items-center w-[554px] h-[41px] px-5 py-2.5 gap-2.5 bg-[#FF4000] rounded-[10px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#e63600] transition-colors"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <p className="font-poppins font-normal text-[14px] leading-[21px] text-white">
-                        Logging in...
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="w-[41px] h-[21px] font-poppins font-normal text-[14px] leading-[21px] text-white">
-                      Log In
-                    </p>
-                  )}
-                </button>
+                  text="Log In"
+                  width="554px"
+                  height="41px"
+                  onClick={async () => {
+                    await handleLogin(new Event("submit") as any);
+                  }}
+                />
 
                 {/* Register Link */}
                 <div className="flex justify-center mt-3 gap-x-2">
                   <p className="font-poppins font-normal text-[14px] leading-[21px] text-[#3E424A]">
                     Not a member?
                   </p>
-                  <p
+                  <Link
+                    href="/registration"
                     className="font-poppins font-medium text-[14px] leading-[21px] text-[#FF4000] cursor-pointer hover:underline"
-                    onClick={() => router.push("/register")}
                   >
                     Register
-                  </p>
+                  </Link>
                 </div>
               </div>
             </form>

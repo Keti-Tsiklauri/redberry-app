@@ -5,6 +5,7 @@ import Logo from "../components/Logo";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Button from "../components/Button";
 const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 const REGISTER_ENDPOINT = "/register";
 const API_KEY = process.env.NEXT_PUBLIC_REDBERRY_API_KEY;
@@ -490,31 +491,23 @@ export default function Registration() {
 
               {/* Register Button */}
               <div className="mt-[45px]">
-                <button
+                <Button
+                  text="Register"
+                  width="554px"
+                  height="41px"
                   type="submit"
-                  disabled={isLoading}
-                  className="flex justify-center items-center w-[554px] h-[41px] bg-[#FF4000] rounded-[10px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#e63600] transition-colors"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <p className="font-poppins text-sm text-white">
-                        Registering...
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="font-poppins text-sm text-white">Register</p>
-                  )}
-                </button>
-
+                />
                 {/* Already member */}
                 <div className="flex justify-center mt-3 gap-x-2">
                   <p className="font-poppins text-sm text-[#3E424A]">
                     Already member?
                   </p>
-                  <p className="font-poppins font-medium text-sm text-[#FF4000] cursor-pointer hover:underline">
+                  <Link
+                    href="/login"
+                    className="font-poppins font-medium text-sm text-[#FF4000] cursor-pointer hover:underline"
+                  >
                     Log in
-                  </p>
+                  </Link>
                 </div>
               </div>
             </form>

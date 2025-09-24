@@ -96,37 +96,6 @@ export default function CartItems() {
             Remove
           </button>
         </div>
-        <CartSummary subtotal={totalPrice} />
-        <button
-          className="
-        absolute left-[40px] top-[981px] 
-        w-[460px] h-[59px] 
-        flex justify-center items-center gap-[10px] 
-        px-[60px] py-[16px] 
-        bg-[#FF4000] rounded-[10px]
-      "
-        >
-          {/* Icon (hidden per spec, but kept for future use) */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="white"
-            className="hidden w-6 h-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437m0 0L6.75 15.75h10.5l1.644-7.478a1.125 1.125 0 00-1.098-1.372H5.616m-.51-2.63L5.616 7.5m0 0h13.635M9 21h.008v.008H9V21zm6 0h.008v.008H15V21z"
-            />
-          </svg>
-
-          {/* Button text */}
-          <span className="font-poppins font-medium text-[18px] leading-[27px] text-white cursor-pointer">
-            Add to cart
-          </span>
-        </button>
       </div>
     </div>
   ));
