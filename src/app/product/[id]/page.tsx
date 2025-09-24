@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "@/app/components/header/Header";
-
+import { useCart } from "@/app/components/CartContext";
 interface Brand {
   id: number;
   name: string;
@@ -40,7 +40,10 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
-
+  const { cart, addToCart } = useCart();
+  useEffect(() => {
+    console.log("🛒 Cart updated:", cart);
+  }, [cart]);
   // fetch product
   useEffect(() => {
     if (!id) return;
@@ -82,6 +85,23 @@ export default function ProductDetailPage() {
   if (loading) return <p>Loading product...</p>;
   if (error) return <p className="text-red-500">Error: {error}</p>;
   if (!product) return <p>No product found</p>;
+  // add to cart
+
+  const handleAddToCart = () => {
+    if (!product || !selectedColor || !selectedSize) return;
+
+    const newItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      color: selectedColor,
+      size: selectedSize,
+      quantity,
+      image: selectedImage || product.cover_image,
+    };
+
+    addToCart(newItem);
+  };
 
   return (
     <div>
@@ -219,7 +239,10 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Add to Cart */}
-            <button className="cursor-pointer flex items-center justify-center gap-2 w-[704px] h-[59px] bg-[#FF4000] rounded-[10px] px-[60px] py-4 text-white font-poppins font-medium text-[18px] leading-[27px] mt-6">
+            <button
+              onClick={handleAddToCart}
+              className="cursor-pointer flex items-center justify-center gap-2 w-[704px] h-[59px] bg-[#FF4000] rounded-[10px] px-[60px] py-4 text-white font-poppins font-medium text-[18px] leading-[27px] mt-6"
+            >
               <Image src="/shopping.svg" alt="cart" width={24} height={24} />
               Add to cart
             </button>
