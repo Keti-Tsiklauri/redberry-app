@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import Header from "@/app/components/header/Header";
+import Header from "@/app/components/auth/Header";
 import { useCart } from "@/app/components/cart/CartContext";
 import Button from "@/app/components/button/Button";
 interface Brand {

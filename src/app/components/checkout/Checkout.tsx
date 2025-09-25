@@ -2,12 +2,11 @@
 import Button from "../button/Button";
 import CartItems from "../cart/CartItems";
 import CartSummary from "../cart/CartSummary";
-import Header from "../header/Header";
+
 import OrderDetails from "./OrderDetails";
 export default function Checkout() {
   return (
     <div>
-      <Header />
       <p
         className=" top-[152px] mx-auto py-[10px] w-[1920px]
          h-[63px] 

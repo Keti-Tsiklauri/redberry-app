@@ -1,10 +1,13 @@
 "use client";
 import { useState, FormEvent } from "react";
-import Logo from "../components/logo/Logo";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
+import InputField from "../components/auth/InputField";
+import PasswordField from "../components/auth/PasswordField";
 import Button from "../components/button/Button";
+import GeneralError from "../components/auth/GeneralError";
 
 export default function Login() {
   const [show, setShow] = useState(true);
@@ -22,7 +25,6 @@ export default function Login() {
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setBackendErrors([]);
-
     setIsLoading(true);
 
     try {
@@ -49,32 +51,25 @@ export default function Login() {
       }
 
       if (response.ok) {
-        // Save token
         if (data.token) {
           localStorage.setItem("authToken", data.token);
           document.cookie = `authToken=${data.token}; path=/;`;
-          console.log("Saved token:", data.token);
         }
 
-        // Save user info
         if (data.user) {
           localStorage.setItem("userData", JSON.stringify(data.user));
           localStorage.setItem("userId", data.user.id.toString());
           localStorage.setItem("userEmail", data.user.email);
           localStorage.setItem("username", data.user.username);
-          console.log("Saved user data:", data.user);
         }
 
-        // Reset fields
         setEmail("");
         setPassword("");
         setBackendErrors([]);
 
         router.push("/");
       } else {
-        // Show API errors
         if (data.errors) {
-          // backend returns multiple errors
           const allErrors = Object.values(data.errors).flat() as string[];
           setBackendErrors(allErrors);
         } else if (data.message) {
@@ -96,25 +91,6 @@ export default function Login() {
 
   return (
     <div>
-      {/* Login Header */}
-      <div className="flex flex-row justify-between items-center mx-auto py-[10px] w-[1920px] h-[80px] bg-white">
-        <Logo />
-        <div className="flex items-center gap-2.5 cursor-pointer">
-          <Image
-            alt="person"
-            src="/person-placeholder.svg"
-            width={20}
-            height={20}
-          />
-          <Link
-            className="w-[50px] h-[18px] font-poppins not-italic font-medium text-[12px] leading-[18px] text-[#10151F]"
-            href="/registration"
-          >
-            Register
-          </Link>
-        </div>
-      </div>
-
       {/* Main Div */}
       <div className="flex flex-row">
         {/* Left Side */}
@@ -130,86 +106,46 @@ export default function Login() {
 
         {/* Right Side */}
         <div className="flex-1">
-          <div className="w-[554px] mx-auto flex flex-col items-start mt-[240px] ">
+          <div className="w-[554px] mx-auto flex flex-col items-start mt-[240px] gap-8">
             <p className="w-[124px] h-[63px] font-poppins font-semibold text-[42px] leading-[63px] text-[#10151F] whitespace-nowrap">
               Log In
             </p>
 
-            {/* Error Message */}
             {/* Error Messages */}
-            {backendErrors.length > 0 && (
-              <div className="w-[554px] mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <ul className="list-disc pl-5 space-y-1">
-                  {backendErrors.map((err, idx) => (
-                    <li key={idx} className="text-red-600 text-sm font-poppins">
-                      {err}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <GeneralError errors={backendErrors} />
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-6">
-              {/* Email Input */}
-              <div className="relative w-[554px] h-[42px] flex items-center mt-[40px] px-3 border border-[#E1DFE1] rounded-lg bg-white">
-                {email === "" && (
-                  <div className="flex items-center gap-1 pointer-events-none">
-                    <p className="font-poppins font-normal text-sm leading-[21px] text-[#3E424A]">
-                      Email
-                    </p>
-                    <span className="font-poppins font-normal text-sm leading-[21px] text-[#FF4000]">
-                      *
-                    </span>
-                  </div>
-                )}
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  className="absolute w-full h-full left-0 top-0 px-3 bg-transparent outline-none font-poppins text-sm text-[#3E424A] disabled:opacity-50"
-                />
-              </div>
+            <form
+              onSubmit={handleLogin}
+              noValidate
+              className="flex flex-col gap-6"
+            >
+              <InputField
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+                disabled={isLoading}
+              />
 
-              {/* Password Input */}
-              <div className="relative w-[554px] h-[42px] flex items-center px-3 border border-[#E1DFE1] rounded-lg bg-white">
-                {password === "" && (
-                  <div className="flex items-center gap-1 pointer-events-none">
-                    <p className="font-poppins font-normal text-sm leading-[21px] text-[#3E424A]">
-                      Password
-                    </p>
-                    <span className="font-poppins font-normal text-sm leading-[21px] text-[#FF4000]">
-                      *
-                    </span>
-                  </div>
-                )}
-                <input
-                  type={show ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  className="absolute w-full h-full left-0 top-0 px-3 bg-transparent outline-none font-poppins text-sm text-[#3E424A] disabled:opacity-50"
-                />
-                <Image
-                  src={show ? "/show-password.svg" : "/hide-password.svg"}
-                  alt="eye"
-                  width={20}
-                  height={20}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-                  onClick={() => setShow((prev) => !prev)}
-                />
-              </div>
+              <PasswordField
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                disabled={isLoading}
+                show={show}
+                onToggleShow={() => setShow((prev) => !prev)}
+              />
 
-              {/* Login Button */}
               <div className="mt-[45px]">
                 <Button
                   type="submit"
-                  text="Log In"
+                  text={isLoading ? "Logging in..." : "Log In"}
                   width="554px"
                   height="41px"
-                  onClick={async () => {
-                    await handleLogin(new Event("submit") as any);
-                  }}
+                  disabled={isLoading}
+                  loading={isLoading}
                 />
 
                 {/* Register Link */}
