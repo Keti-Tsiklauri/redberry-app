@@ -9,9 +9,17 @@ import Button from "../button/Button";
 import CartSummary from "./CartSummary";
 import EmptyCart from "./EmptyCart";
 
+import { useRouter } from "next/navigation";
+
 export default function Cart() {
   const { setShowCart } = useGlobal();
   const { cart } = useCart();
+  const router = useRouter();
+
+  const goToCheckout = () => {
+    router.push("/checkout"); // navigate to checkout page
+    setShowCart(false);
+  };
   return (
     <div className="z-[100] absolute right-0 bottom-0 w-[540px] h-[1080px] bg-[#F8F6F7] border-l border-[#E1DFE1] box-border p-[40px] overflow-y-auto">
       {/* header */}
@@ -38,7 +46,11 @@ export default function Cart() {
           </div>
           <div className="flex flex-col justify-between h-[250px]">
             <CartSummary />
-            <Button text="Go to checkout" width="460px" />
+            <Button
+              text="Go to checkout"
+              width="460px"
+              onClick={goToCheckout}
+            />
           </div>
         </div>
       )}

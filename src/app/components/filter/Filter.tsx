@@ -34,8 +34,8 @@ export default function Filter({
   }, [selectedFrom, selectedTo, selectedSort]);
 
   return (
-    <div className="w-[1720px] flex justify-between mx-auto relative">
-      <div className="flex gap-8 items-center">
+    <div>
+      <div className="flex w-[270px] gap-8 items-center">
         {/* Price filter button */}
         <div
           className="flex gap-2 cursor-pointer"

@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 import { useCart } from "./CartContext";
-import CartSummary from "./CartSummary";
 
 export default function CartItems() {
-  const { cart, removeFromCart, updateQuantity, totalPrice } = useCart();
+  const { cart, removeFromCart, updateQuantity } = useCart();
 
   useEffect(() => {
     console.log("🛒 Cart updated:", cart);

@@ -13,8 +13,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <GlobalProvider>
-          <Header />
-          <CartProvider>{children}</CartProvider>
+          <CartProvider>
+            <Header />
+            {children}
+          </CartProvider>
         </GlobalProvider>
       </body>
     </html>

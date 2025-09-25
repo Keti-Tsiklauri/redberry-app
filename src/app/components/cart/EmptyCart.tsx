@@ -1,5 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
+import { useGlobal } from "../context/globalcontext";
 export default function EmptyCart() {
+  const { setShowCart } = useGlobal();
   return (
     <div>
       <Image
@@ -17,9 +20,13 @@ export default function EmptyCart() {
       </p>
 
       <button className="absolute left-1/2 top-[506px] flex flex-row justify-center items-center gap-[10px] px-[20px] py-[10px] w-[214px] h-[41px] -translate-x-1/2 bg-[#FF4000] rounded-[10px]">
-        <span className="w-[103px] h-[21px] font-poppins font-normal text-[14px] leading-[21px] text-white cursor-pointer">
+        <Link
+          onClick={() => setShowCart(false)}
+          href="/"
+          className="w-[103px] h-[21px] font-poppins font-normal text-[14px] leading-[21px] text-white cursor-pointer"
+        >
           Start Shopping
-        </span>
+        </Link>
       </button>
     </div>
   );

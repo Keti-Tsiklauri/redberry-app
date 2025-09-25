@@ -106,8 +106,6 @@ export default function ProductDetailPage() {
 
   return (
     <div>
-      <Header />
-
       {/* breadcrumb */}
       <div className="mb-8 w-[1820px] mx-auto font-poppins font-light text-[14px] leading-[21px] text-[#10151F] flex flex-row">
         <Link href="/">
