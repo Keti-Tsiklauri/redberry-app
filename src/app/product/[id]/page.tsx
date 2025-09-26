@@ -328,16 +328,6 @@ export default function ProductDetailPage() {
                   {addMessage}
                 </p>
               )}
-
-              {/* Debug info (remove in production) */}
-              {process.env.NODE_ENV === "development" && (
-                <div className="text-xs text-gray-500 mt-2">
-                  <p>
-                    Debug: Auth: {isAuthenticated ? "Yes" : "No"}, Cart items:{" "}
-                    {cart.length}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 

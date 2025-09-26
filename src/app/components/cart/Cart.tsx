@@ -25,8 +25,10 @@ export default function Cart() {
       {/* header */}
       <div className="flex justify-between">
         <p className="top-[41px] w-[181px] h-[30px] font-poppins font-medium text-[20px] leading-[30px] text-[#10151F]">
-          Shopping cart ({cart.length})
+          Shopping cart (
+          {cart.reduce((total, item) => total + item.quantity, 0)})
         </p>
+
         <Image
           src="/x-mark.svg"
           width={32}
