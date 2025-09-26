@@ -1,8 +1,9 @@
 "use client";
+
 import Link from "next/link";
-import Logo from "../logo/Logo";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import Logo from "../logo/Logo";
 import Cart from "../cart/Cart";
 import { useGlobal } from "../context/globalcontext";
 
@@ -17,18 +18,32 @@ export default function Header() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const { showCart, setShowCart } = useGlobal();
+
+  // Load token and user from localStorage
   useEffect(() => {
     const savedToken = localStorage.getItem("authToken");
     const savedUser = localStorage.getItem("userData");
 
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-      console.log("Token in Home:", savedToken);
-      console.log("User in Home:", JSON.parse(savedUser));
-    }
+    setToken(savedToken);
+    setUser(savedUser ? JSON.parse(savedUser) : null);
+
+    // Listen for changes to localStorage (cross-tab logout/login)
+    const handleStorageChange = () => {
+      const updatedToken = localStorage.getItem("authToken");
+      const updatedUser = localStorage.getItem("userData");
+
+      setToken(updatedToken);
+      setUser(updatedUser ? JSON.parse(updatedUser) : null);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
+  // Logout function
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userData");
@@ -44,7 +59,7 @@ export default function Header() {
   };
 
   return (
-    <header className="flex flex-row justify-between items-center mx-auto py-[10px] w-[1920px] h-[80px] bg-white">
+    <header className="flex justify-between items-center mx-auto py-[10px] w-[1920px] h-[80px] bg-white">
       {showCart && <Cart />}
       <Logo />
 
@@ -58,6 +73,7 @@ export default function Header() {
           onClick={() => setShowCart(true)}
         />
         <div className="flex gap-2 items-center">
+          {/* Avatar */}
           {user?.avatar ? (
             <div className="w-10 h-10 rounded-full overflow-hidden flex-none">
               <Image
@@ -78,14 +94,14 @@ export default function Header() {
             />
           )}
 
-          {user && token ? (
-            <Link
-              href="/"
+          {/* Login / Logout */}
+          {token ? (
+            <button
               onClick={handleLogout}
               className="cursor-pointer hover:underline w-[50px] h-[28px] font-poppins font-medium text-[#10151F] whitespace-nowrap"
             >
               Log out
-            </Link>
+            </button>
           ) : (
             <Link
               href="/login"

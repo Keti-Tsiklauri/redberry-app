@@ -4,7 +4,6 @@ import Button from "../components/button/Button";
 import { useCart } from "../components/cart/CartContext";
 import CartItems from "../components/cart/CartItems";
 import CartSummary from "../components/cart/CartSummary";
-import EmptyCart from "../components/cart/EmptyCart";
 
 import OrderDetails from "../components/checkout/OrderDetails";
 export default function Checkout() {
