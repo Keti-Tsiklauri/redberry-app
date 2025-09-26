@@ -8,6 +8,7 @@ import InputField from "../components/auth/InputField";
 import PasswordField from "../components/auth/PasswordField";
 import Button from "../components/button/Button";
 import GeneralError from "../components/auth/GeneralError";
+import Logo from "../components/logo/Logo";
 
 export default function Login() {
   const [show, setShow] = useState(true);
@@ -52,8 +53,12 @@ export default function Login() {
 
       if (response.ok) {
         if (data.token) {
+          // Save token
           localStorage.setItem("authToken", data.token);
           document.cookie = `authToken=${data.token}; path=/;`;
+
+          // Notify CartContext that auth state changed
+          window.dispatchEvent(new Event("authStateChanged"));
         }
 
         if (data.user) {
@@ -91,6 +96,24 @@ export default function Login() {
 
   return (
     <div>
+      {/* header */}
+      <div className="flex w-[1920px] h-[80px] justify-between mx-auto">
+        <Logo />
+        <div className="flex flex-row gap-3 items-center">
+          <Image
+            src="/person-placeholder.svg"
+            width={20}
+            height={20}
+            alt="placeholder avatar"
+          />
+          <Link
+            href="./registration"
+            className="font-poppins font-medium text-[12px] leading-[18px] text-[#10151F] cursor-pointer"
+          >
+            Register
+          </Link>
+        </div>
+      </div>
       {/* Main Div */}
       <div className="flex flex-row">
         {/* Left Side */}

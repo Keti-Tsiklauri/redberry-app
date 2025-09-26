@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { useCart } from "@/app/components/cart/CartContext";
 import Button from "@/app/components/button/Button";
+import Header from "@/app/components/auth/Header";
 
 interface Brand {
   id: number;
@@ -154,6 +155,7 @@ export default function ProductDetailPage() {
 
   return (
     <div>
+      <Header />
       {/* breadcrumb */}
       <div className="mb-8 w-[1820px] mx-auto font-poppins font-light text-[14px] leading-[21px] text-[#10151F] flex flex-row">
         <Link href="/">
@@ -323,12 +325,20 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Messages under button */}
-            <div className="mt-2 font-poppins text-sm min-h-[20px]">
+            <div className="mt-2 font-poppins text-sm">
               {!isAuthenticated && (
-                <p className="text-amber-600">
-                  Sorry, you can't add items to the cart. You need to log in
-                  first.
-                </p>
+                <div className="flex flex-row items-center gap-1">
+                  <p className="text-amber-600 whitespace-nowrap">
+                    Sorry, you can't add items to the cart. You need to log in
+                    first.
+                  </p>
+                  <Link
+                    href="/login"
+                    className="text-blue-600 hover:underline font-medium whitespace-nowrap"
+                  >
+                    Log in
+                  </Link>
+                </div>
               )}
             </div>
           </div>

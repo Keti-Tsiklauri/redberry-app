@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-
+import Logo from "../components/logo/Logo";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import AuthForm from "../components/auth/AuthForm";
 import AvatarUpload from "../components/auth/AvatarUpload";
 import GeneralError from "../components/auth/GeneralError";
+import Link from "next/link";
 
 const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 const REGISTER_ENDPOINT = "/register";
@@ -212,6 +213,24 @@ export default function Registration() {
 
   return (
     <div>
+      {/* header */}
+      <div className="flex w-[1920px] h-[80px] justify-between mx-auto">
+        <Logo />
+        <div className="flex flex-row gap-3 items-center">
+          <Image
+            src="/person-placeholder.svg"
+            width={20}
+            height={20}
+            alt="placeholder avatar"
+          />
+          <Link
+            href="./login"
+            className="font-poppins font-medium text-[12px] leading-[18px] text-[#10151F] cursor-pointer"
+          >
+            Log in{" "}
+          </Link>
+        </div>
+      </div>
       <div className="flex flex-row">
         {/* Left */}
         <div className="flex-1">

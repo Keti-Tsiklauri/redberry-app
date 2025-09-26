@@ -5,6 +5,7 @@ import ProductsGrid from "./ProductsGrid";
 import Pagination from "./Pagination";
 import Filter from "./filter/Filter";
 import FilterTag from "./filter/FilterTagProps";
+import Header from "./auth/Header";
 
 interface Product {
   id: number;
@@ -71,67 +72,70 @@ export default function HomePage() {
   const endResult = Math.min(currentPage * resultsPerPage, totalResults);
 
   return (
-    <div className="flex flex-col items-center">
-      {/* Header + Filters */}
-      <div className="w-[1720px] flex flex-row  justify-between items-center mx-auto ">
-        <p className="w-[190px] h-[63px] font-poppins font-semibold text-[42px] leading-[63px] text-[#10151F]">
-          Products
-        </p>
-        <div className="flex flex-row gap-8 w-[500px]">
-          <p className="text-gray-600 whitespace-nowrap">
-            Showing {startResult}–{endResult} of {totalResults} results
+    <div>
+      <Header />
+      <div className="flex flex-col items-center">
+        {/* Header + Filters */}
+        <div className="w-[1720px] flex flex-row  justify-between items-center mx-auto ">
+          <p className="w-[190px] h-[63px] font-poppins font-semibold text-[42px] leading-[63px] text-[#10151F]">
+            Products
           </p>
+          <div className="flex flex-row gap-8 w-[500px]">
+            <p className="text-gray-600 whitespace-nowrap">
+              Showing {startResult}–{endResult} of {totalResults} results
+            </p>
 
-          <Filter
-            selectedFrom={priceFrom}
-            selectedTo={priceTo}
-            selectedSort={sortOption}
-            onPriceChange={(from, to) => {
-              setPriceFrom(from);
-              setPriceTo(to);
-              setCurrentPage(1);
-            }}
-            onSortChange={(sort) => {
-              setSortOption(sort);
+            <Filter
+              selectedFrom={priceFrom}
+              selectedTo={priceTo}
+              selectedSort={sortOption}
+              onPriceChange={(from, to) => {
+                setPriceFrom(from);
+                setPriceTo(to);
+                setCurrentPage(1);
+              }}
+              onSortChange={(sort) => {
+                setSortOption(sort);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+        </div>
+        <div className="w-[1720px] float-left">
+          <FilterTag
+            from={priceFrom}
+            to={priceTo}
+            onClear={() => {
+              setPriceFrom(null);
+              setPriceTo(null);
               setCurrentPage(1);
             }}
           />
         </div>
+
+        {/* Products List */}
+
+        {/* Products List + Pagination */}
+        {loading ? (
+          <p>Loading products...</p>
+        ) : error ? (
+          <p className="text-red-600">{error}</p>
+        ) : (
+          <>
+            <ProductsGrid products={products} />
+
+            {products.length > 0 && (
+              <div className="w-full flex justify-center mt-6">
+                <Pagination
+                  totalPages={lastPage}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
+          </>
+        )}
       </div>
-      <div className="w-[1720px] float-left">
-        <FilterTag
-          from={priceFrom}
-          to={priceTo}
-          onClear={() => {
-            setPriceFrom(null);
-            setPriceTo(null);
-            setCurrentPage(1);
-          }}
-        />
-      </div>
-
-      {/* Products List */}
-
-      {/* Products List + Pagination */}
-      {loading ? (
-        <p>Loading products...</p>
-      ) : error ? (
-        <p className="text-red-600">{error}</p>
-      ) : (
-        <>
-          <ProductsGrid products={products} />
-
-          {products.length > 0 && (
-            <div className="w-full flex justify-center mt-6">
-              <Pagination
-                totalPages={lastPage}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }
