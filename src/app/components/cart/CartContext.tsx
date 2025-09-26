@@ -15,327 +15,251 @@ export interface CartItem {
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (
-    item: CartItem
-  ) => Promise<{ success: boolean; needsAuth?: boolean; error?: string }>;
+  addToCart: (item: CartItem) => Promise<void>;
   updateQuantity: (
     id: string,
     quantity: number,
     color?: string,
     size?: string
-  ) => Promise<{ success: boolean; needsAuth?: boolean }>;
-  removeFromCart: (
-    id: string,
-    color?: string,
-    size?: string
-  ) => Promise<{ success: boolean; needsAuth?: boolean }>;
-  isLoading: boolean;
-  error: string | null;
-  isAuthenticated: boolean;
+  ) => Promise<void>;
+  removeFromCart: (id: string, color?: string, size?: string) => Promise<void>;
   refreshCart: () => Promise<void>;
+  total_price: number;
+  isAuthenticated: boolean;
+  refreshAuth: () => void; // Added for manual refresh
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 
-  // Helper to get token and headers with validation
-  const getHeaders = () => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const total_price = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
+  // Manual auth refresh function
+  const refreshAuth = () => {
+    const token = localStorage.getItem("authToken");
+    console.log("🔄 Refreshing auth, token:", token ? "EXISTS" : "MISSING");
+    setIsAuthenticated(!!token);
+  };
+
+  const getHeaders = () => {
+    const token = localStorage.getItem("authToken");
+    console.log("🔑 Getting headers, token:", token ? "EXISTS" : "MISSING");
     const headers: HeadersInit = {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-      console.log("Using auth token:", token.substring(0, 20) + "..."); // Debug log
-    }
-
+    if (token) headers["Authorization"] = `Bearer ${token}`;
     return { headers, token };
   };
 
-  // Check auth status
+  // Check authentication status
   useEffect(() => {
-    const checkAuth = () => {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("authToken")
-          : null;
-      setIsAuthenticated(!!token);
-      console.log("Auth status checked, token exists:", !!token);
-    };
-
-    checkAuth();
+    console.log("🏗️ CartProvider initializing...");
+    const token = localStorage.getItem("authToken");
+    console.log("🔐 Initial auth check, token:", token ? "EXISTS" : "MISSING");
+    setIsAuthenticated(!!token);
 
     // Listen for storage changes (login/logout in other tabs)
-    const handleStorageChange = () => checkAuth();
-    window.addEventListener("storage", handleStorageChange);
+    const handleStorageChange = (e: StorageEvent) => {
+      console.log("💾 Storage changed:", e.key, e.newValue ? "SET" : "REMOVED");
+      if (e.key === "authToken") {
+        setIsAuthenticated(!!e.newValue);
+      }
+    };
 
-    // Also listen for custom auth events
-    const handleAuthChange = () => checkAuth();
-    window.addEventListener("authStateChanged", handleAuthChange);
+    // Listen for custom auth events (for same-tab login)
+    const handleAuthChange = (e: CustomEvent) => {
+      console.log("🔄 Auth event received:", e.detail);
+      const token = localStorage.getItem("authToken");
+      setIsAuthenticated(!!token);
+    };
+
+    // Listen for focus events to check auth when returning to the page
+    const handleFocus = () => {
+      console.log("👀 Window focused, checking auth...");
+      const token = localStorage.getItem("authToken");
+      const currentlyAuth = !!token;
+      if (currentlyAuth !== isAuthenticated) {
+        console.log("🔄 Auth state mismatch, updating:", currentlyAuth);
+        setIsAuthenticated(currentlyAuth);
+      }
+    };
+
+    // Listen for visibility change (when tab becomes visible)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log("👁️ Page became visible, checking auth...");
+        const token = localStorage.getItem("authToken");
+        const currentlyAuth = !!token;
+        if (currentlyAuth !== isAuthenticated) {
+          console.log(
+            "🔄 Auth state mismatch on visibility, updating:",
+            currentlyAuth
+          );
+          setIsAuthenticated(currentlyAuth);
+        }
+      }
+    };
+
+    // Periodic check for auth changes (fallback)
+    const authCheckInterval = setInterval(() => {
+      const token = localStorage.getItem("authToken");
+      const currentlyAuth = !!token;
+      if (currentlyAuth !== isAuthenticated) {
+        console.log(
+          "⏰ Periodic auth check - state mismatch, updating:",
+          currentlyAuth
+        );
+        setIsAuthenticated(currentlyAuth);
+      }
+    }, 2000); // Check every 2 seconds
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("authChange", handleAuthChange as EventListener);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("authStateChanged", handleAuthChange);
+      window.removeEventListener(
+        "authChange",
+        handleAuthChange as EventListener
+      );
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearInterval(authCheckInterval);
     };
-  }, []);
+  }, [isAuthenticated]); // Add isAuthenticated to dependency array
 
-  // Refresh cart function
+  // Log auth state changes
+  useEffect(() => {
+    console.log("🔐 Auth state changed:", isAuthenticated);
+  }, [isAuthenticated]);
+
+  // Refresh cart from server
   const refreshCart = async () => {
     const { headers, token } = getHeaders();
+    console.log("🛒 Refreshing cart, authenticated:", !!token);
+
     if (!token) {
+      console.log("❌ No token, clearing cart");
       setCart([]);
       return;
     }
 
     try {
-      setIsLoading(true);
-      setError(null);
-
-      console.log("Fetching cart from API...");
-      const res = await fetch(`${API_BASE_URL}/cart/products`, {
-        method: "GET",
-        headers,
-      });
-
-      console.log("Cart fetch response status:", res.status);
-
-      if (res.status === 401) {
-        // Token expired or invalid
-        localStorage.removeItem("authToken");
-        setIsAuthenticated(false);
-        setCart([]);
-        return;
-      }
+      console.log("🌐 Fetching cart from API...");
+      const res = await fetch(`${API_BASE_URL}/cart`, { headers });
+      console.log("📡 Cart API response:", res.status, res.statusText);
 
       if (!res.ok) {
-        throw new Error(`Failed to fetch cart: ${res.status}`);
+        console.error("❌ Failed to fetch cart:", res.status, res.statusText);
+        throw new Error("Failed to fetch cart");
       }
 
       const data = await res.json();
-      console.log("Cart data received:", data);
+      console.log("📦 Cart data received:", data);
       setCart(data.products || []);
-    } catch (err: any) {
-      console.error("Error fetching cart:", err);
-      setError(err.message || "Failed to fetch cart");
+    } catch (err) {
+      console.error("💥 Error fetching cart:", err);
       setCart([]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  // Load cart from API
-  useEffect(() => {
-    if (isAuthenticated) {
-      refreshCart();
-    } else {
-      setCart([]);
-    }
-  }, [isAuthenticated]);
-
-  // Add item to cart
-  const addToCart = async (
-    item: CartItem
-  ): Promise<{ success: boolean; needsAuth?: boolean; error?: string }> => {
+  // Add item to cart (POST if new, PATCH if exists)
+  const addToCart = async (item: CartItem) => {
+    console.log("➕ Adding to cart:", item);
     const { headers, token } = getHeaders();
 
     if (!token) {
-      console.log("No auth token found, user needs to log in");
-      return { success: false, needsAuth: true };
+      console.error("❌ No auth token for addToCart");
+      throw new Error("No auth token");
     }
 
+    const existingItem = cart.find(
+      (i) => i.id === item.id && i.color === item.color && i.size === item.size
+    );
+    console.log("🔍 Existing item:", existingItem ? "FOUND" : "NOT_FOUND");
+
     try {
-      setIsLoading(true);
-      setError(null);
-
-      // Prepare request data - ensure we're sending the right format
-      const requestData = {
-        quantity: Number(item.quantity),
-        color: item.color || null,
-        size: item.size || null,
-      };
-
-      // Remove null values if the API doesn't accept them
-      const cleanedData = Object.entries(requestData).reduce(
-        (acc, [key, value]) => {
-          if (value !== null) {
-            acc[key] = value;
+      if (existingItem) {
+        console.log("🔄 Updating existing item quantity...");
+        const response = await fetch(
+          `${API_BASE_URL}/cart/products/${item.id}`,
+          {
+            method: "PATCH",
+            headers,
+            body: JSON.stringify({
+              quantity: existingItem.quantity + item.quantity,
+            }),
           }
-          return acc;
-        },
-        {} as any
-      );
-
-      console.log("Adding to cart - Request details:", {
-        url: `${API_BASE_URL}/cart/products/${item.id}`,
-        method: "POST",
-        headers: Object.keys(headers),
-        data: cleanedData,
-      });
-
-      const res = await fetch(`${API_BASE_URL}/cart/products/${item.id}`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(cleanedData),
-      });
-
-      console.log("Add to cart response status:", res.status);
-      console.log("Response headers:", res.headers);
-
-      // Check content type
-      const contentType = res.headers.get("content-type");
-      let responseData;
-      let responseText = "";
-
-      try {
-        if (contentType && contentType.includes("application/json")) {
-          responseData = await res.json();
-          console.log("JSON response data:", responseData);
-        } else {
-          responseText = await res.text();
-          console.log("Non-JSON response:", responseText.substring(0, 500));
-        }
-      } catch (parseError) {
-        console.error("Error parsing response:", parseError);
-      }
-
-      // Handle different response statuses
-      if (res.status === 401) {
-        console.log("401 Unauthorized - token might be expired");
-        localStorage.removeItem("authToken");
-        setIsAuthenticated(false);
-        window.dispatchEvent(new Event("authStateChanged"));
-        return {
-          success: false,
-          needsAuth: true,
-          error: "Authentication expired. Please log in again.",
-        };
-      }
-
-      if (res.status === 422) {
-        const errorMsg =
-          responseData?.message ||
-          "Invalid product data. Please check color, size, and quantity.";
-        console.error("422 Validation error:", errorMsg);
-        setError(errorMsg);
-        return { success: false, error: errorMsg };
-      }
-
-      if (res.status === 404) {
-        const errorMsg = "Product not found";
-        console.error("404 Not found");
-        setError(errorMsg);
-        return { success: false, error: errorMsg };
-      }
-
-      if (res.status >= 500) {
-        const errorMsg = "Server error. Please try again later.";
-        console.error(`Server error ${res.status}`);
-        setError(errorMsg);
-        return { success: false, error: errorMsg };
-      }
-
-      if (!res.ok) {
-        const errorMsg =
-          responseData?.message || `Failed to add item (${res.status})`;
-        console.error("Request failed:", errorMsg);
-        setError(errorMsg);
-        return { success: false, error: errorMsg };
-      }
-
-      // Success! Update local cart state
-      console.log("Successfully added to cart");
-
-      // Option 1: Update local state optimistically
-      setCart((prev) => {
-        const existingIndex = prev.findIndex(
-          (i) =>
-            i.id === item.id && i.color === item.color && i.size === item.size
         );
-        if (existingIndex !== -1) {
-          const updated = [...prev];
-          updated[existingIndex].quantity += item.quantity;
-          updated[existingIndex].total_price =
-            updated[existingIndex].price * updated[existingIndex].quantity;
-          return updated;
+        console.log("📡 PATCH response:", response.status, response.statusText);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ PATCH failed:", response.status, errorText);
+          throw new Error(`PATCH failed: ${response.status}`);
         }
-        return [...prev, { ...item, total_price: item.price * item.quantity }];
-      });
+      } else {
+        console.log("🆕 Adding new item...");
+        const response = await fetch(
+          `${API_BASE_URL}/cart/products/${item.id}`,
+          {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              quantity: item.quantity,
+              color: item.color,
+              size: item.size,
+            }),
+          }
+        );
+        console.log("📡 POST response:", response.status, response.statusText);
 
-      // Option 2: Refresh cart from server to ensure consistency
-      // Uncomment this if you want to always sync with server after adding
-      // await refreshCart();
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ POST failed:", response.status, errorText);
+          throw new Error(`POST failed: ${response.status} - ${errorText}`);
+        }
+      }
 
-      return { success: true };
-    } catch (err: any) {
-      console.error("Unexpected error adding to cart:", err);
-      const errorMsg = err.message || "Failed to add item to cart.";
-      setError(errorMsg);
-      return { success: false, error: errorMsg };
-    } finally {
-      setIsLoading(false);
+      console.log("✅ API call successful, refreshing cart...");
+      await refreshCart();
+    } catch (err) {
+      console.error("💥 Error adding to cart:", err);
+      throw err;
     }
   };
 
-  // Update quantity
+  // Update quantity of a cart item
   const updateQuantity = async (
     id: string,
     quantity: number,
     color?: string,
     size?: string
-  ): Promise<{ success: boolean; needsAuth?: boolean }> => {
+  ) => {
+    console.log("🔄 Updating quantity:", { id, quantity, color, size });
     const { headers, token } = getHeaders();
-    if (!token) {
-      return { success: false, needsAuth: true };
-    }
+    if (!token) throw new Error("No auth token");
 
     try {
-      setIsLoading(true);
-      setError(null);
-
-      const requestData = {
-        quantity: Number(quantity),
-        color: color || null,
-        size: size || null,
-      };
-
-      // Remove null values
-      const cleanedData = Object.entries(requestData).reduce(
-        (acc, [key, value]) => {
-          if (value !== null) {
-            acc[key] = value;
-          }
-          return acc;
-        },
-        {} as any
-      );
-
-      const res = await fetch(`${API_BASE_URL}/cart/products/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/cart/products/${id}`, {
         method: "PATCH",
         headers,
-        body: JSON.stringify(cleanedData),
+        body: JSON.stringify({ quantity, color, size }),
       });
+      console.log("📡 Update quantity response:", response.status);
 
-      if (res.status === 401) {
-        localStorage.removeItem("authToken");
-        setIsAuthenticated(false);
-        window.dispatchEvent(new Event("authStateChanged"));
-        return { success: false, needsAuth: true };
-      }
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to update quantity");
+      if (!response.ok) {
+        throw new Error(`Update failed: ${response.status}`);
       }
 
       setCart((prev) =>
@@ -345,64 +269,28 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             : item
         )
       );
-
-      return { success: true };
-    } catch (err: any) {
-      console.error("Error updating quantity:", err);
-      setError(err.message || "Failed to update quantity.");
-      return { success: false };
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      console.error("💥 Error updating quantity:", err);
+      throw err;
     }
   };
 
-  // Remove item
-  const removeFromCart = async (
-    id: string,
-    color?: string,
-    size?: string
-  ): Promise<{ success: boolean; needsAuth?: boolean }> => {
+  // Remove item from cart
+  const removeFromCart = async (id: string, color?: string, size?: string) => {
+    console.log("🗑️ Removing from cart:", { id, color, size });
     const { headers, token } = getHeaders();
-    if (!token) {
-      return { success: false, needsAuth: true };
-    }
+    if (!token) throw new Error("No auth token");
 
     try {
-      setIsLoading(true);
-      setError(null);
-
-      const requestData = {
-        color: color || null,
-        size: size || null,
-      };
-
-      // Remove null values
-      const cleanedData = Object.entries(requestData).reduce(
-        (acc, [key, value]) => {
-          if (value !== null) {
-            acc[key] = value;
-          }
-          return acc;
-        },
-        {} as any
-      );
-
-      const res = await fetch(`${API_BASE_URL}/cart/products/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/cart/products/${id}`, {
         method: "DELETE",
         headers,
-        body: JSON.stringify(cleanedData),
+        body: JSON.stringify({ color, size }),
       });
+      console.log("📡 Delete response:", response.status);
 
-      if (res.status === 401) {
-        localStorage.removeItem("authToken");
-        setIsAuthenticated(false);
-        window.dispatchEvent(new Event("authStateChanged"));
-        return { success: false, needsAuth: true };
-      }
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to remove item");
+      if (!response.ok) {
+        throw new Error(`Delete failed: ${response.status}`);
       }
 
       setCart((prev) =>
@@ -411,16 +299,22 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             !(item.id === id && item.color === color && item.size === size)
         )
       );
-
-      return { success: true };
-    } catch (err: any) {
-      console.error("Error removing item:", err);
-      setError(err.message || "Failed to remove item.");
-      return { success: false };
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      console.error("💥 Error removing item:", err);
+      throw err;
     }
   };
+
+  // Load cart on mount and when auth changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("🔄 Auth changed to true, refreshing cart...");
+      refreshCart();
+    } else {
+      console.log("🔄 Auth changed to false, clearing cart...");
+      setCart([]);
+    }
+  }, [isAuthenticated]);
 
   return (
     <CartContext.Provider
@@ -429,10 +323,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         addToCart,
         updateQuantity,
         removeFromCart,
-        isLoading,
-        error,
-        isAuthenticated,
         refreshCart,
+        total_price,
+        isAuthenticated,
+        refreshAuth,
       }}
     >
       {children}

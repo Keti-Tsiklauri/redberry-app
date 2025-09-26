@@ -31,58 +31,42 @@ interface Product {
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [addMessage, setAddMessage] = useState("");
 
   const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
-  const {
-    addToCart,
-    cart,
-    isLoading: cartLoading,
-    error: cartError,
-    isAuthenticated,
-  } = useCart();
 
-  // debug log
+  const { addToCart, cart, isAuthenticated } = useCart();
+
   useEffect(() => {
     console.log("🛒 Cart updated:", cart);
-  }, [cart]);
+    console.log("🔐 Is authenticated:", isAuthenticated);
+  }, [cart, isAuthenticated]);
 
-  // fetch product
+  // Fetch product details
   useEffect(() => {
     if (!id) return;
 
     const fetchProduct = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/products/${id}`);
-        if (!res.ok)
-          throw new Error(`HTTP ${res.status}: Failed to fetch product`);
+        if (!res.ok) throw new Error(`Failed to fetch product: ${res.status}`);
         const data: Product = await res.json();
 
         setProduct(data);
-
-        if (data.images?.length > 0) {
-          setSelectedImage(data.images[0]);
-        } else if (data.cover_image) {
-          setSelectedImage(data.cover_image);
-        }
-
-        if (data.available_colors?.length > 0) {
-          setSelectedColor(data.available_colors[0]);
-        }
-
-        if (data.available_sizes?.length > 0) {
-          setSelectedSize(data.available_sizes[0]);
-        }
+        setSelectedImage(data.images?.[0] || data.cover_image || null);
+        setSelectedColor(data.available_colors?.[0] || null);
+        setSelectedSize(data.available_sizes?.[0] || null);
       } catch (err: any) {
         setError(err.message);
-        console.error("Failed to fetch product:", err);
       } finally {
         setLoading(false);
       }
@@ -93,61 +77,56 @@ export default function ProductDetailPage() {
 
   const handleColorClick = (color: string, index: number) => {
     setSelectedColor(color);
-    if (product?.images && product.images[index]) {
-      setSelectedImage(product.images[index]);
-    }
+    if (product?.images?.[index]) setSelectedImage(product.images[index]);
   };
 
   const handleImageClick = (image: string, index: number) => {
     setSelectedImage(image);
-    if (product?.available_colors && product.available_colors[index]) {
+    if (product?.available_colors?.[index])
       setSelectedColor(product.available_colors[index]);
-    }
   };
 
-  // add to cart with auth handling
   const handleAddToCart = async () => {
-    if (!product || !selectedColor || !selectedSize) return;
+    if (!product || !selectedColor || !selectedSize) {
+      setAddMessage("Please select color and size");
+      setTimeout(() => setAddMessage(""), 3000);
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setAddMessage("Please log in to add items to cart");
+      setTimeout(() => setAddMessage(""), 3000);
+      return;
+    }
 
     setIsAddingToCart(true);
+    setAddMessage("");
 
     try {
-      const result = await addToCart({
+      await addToCart({
         id: product.id.toString(),
         name: product.name,
         price: product.price,
-        quantity,
+        quantity: quantity, // Use the selected quantity
         color: selectedColor,
         size: selectedSize,
         image: selectedImage || product.cover_image || "/placeholder.png",
-        total_price: product.price * quantity,
+        total_price: product.price * quantity, // Calculate total based on quantity
       });
 
-      // If user needs authentication, redirect to login
-      if (result.needsAuth) {
-        return;
-      }
-
-      if (result.success) {
-        // Optional: Show success message or redirect
-        console.log("Item added to cart successfully!");
-      }
+      setAddMessage("Item added to cart successfully!");
+      console.log("Item added to cart successfully!");
     } catch (err) {
       console.error("Failed to add to cart:", err);
+      setAddMessage("Failed to add to cart. Please try again.");
     } finally {
       setIsAddingToCart(false);
+      setTimeout(() => setAddMessage(""), 3000);
     }
   };
 
-  const isDisabled =
-    !selectedColor || !selectedSize || isAddingToCart || cartLoading;
-
-  // Dynamic button text based on auth status
-  const getButtonText = () => {
-    if (isAddingToCart) return "Adding...";
-    if (!isAuthenticated) return "Login to Add to Cart";
-    return "Add to Cart";
-  };
+  // Only disable if missing selections or currently adding - NOT based on auth
+  const isDisabled = !selectedColor || !selectedSize || isAddingToCart;
 
   if (loading) return <p>Loading product...</p>;
   if (error) return <p className="text-red-500">Error: {error}</p>;
@@ -156,22 +135,21 @@ export default function ProductDetailPage() {
   return (
     <div>
       <Header />
-      {/* breadcrumb */}
-      <div className="mb-8 w-[1820px] mx-auto font-poppins font-light text-[14px] leading-[21px] text-[#10151F] flex flex-row">
-        <Link href="/">
-          <p className="text-[#10151F] font-poppins text-[14px] hover:underline">
-            Listing
-          </p>
+
+      {/* Breadcrumb */}
+      <div className="mb-8 w-[1820px] mx-auto text-[14px] text-[#10151F] flex gap-2">
+        <Link href="/" className="hover:underline">
+          Listing
         </Link>
-        <span className="mx-2">/</span>
+        <span>/</span>
         <span className="text-[#3E424A]">Product</span>
       </div>
 
-      <div className="flex flex-row w-[1820px] h-[1230px] justify-between mx-auto">
-        {/* left images */}
-        <div className="flex flex-row gap-4">
+      <div className="flex w-[1820px] h-[1230px] justify-between mx-auto">
+        {/* Left: Images */}
+        <div className="flex gap-4">
           <div className="flex flex-col gap-2">
-            {product.images && product.images.length > 0 ? (
+            {product.images?.length ? (
               product.images.map((image, index) => (
                 <div
                   key={index}
@@ -184,7 +162,7 @@ export default function ProductDetailPage() {
                 >
                   <Image
                     src={image}
-                    alt={`${product.name} - view ${index + 1}`}
+                    alt={`${product.name} - ${index + 1}`}
                     width={120}
                     height={160}
                     className="object-cover"
@@ -192,13 +170,12 @@ export default function ProductDetailPage() {
                 </div>
               ))
             ) : (
-              <div className="w-[120px] h-[160px] bg-gray-200 rounded-lg flex items-center justify-center">
+              <div className="w-[120px] h-[160px] bg-gray-200 flex items-center justify-center rounded-lg">
                 <span className="text-gray-500 text-sm">No images</span>
               </div>
             )}
           </div>
 
-          {/* main image */}
           <div className="w-[700px] h-[940px] border border-[#E1DFE1] rounded-lg overflow-hidden">
             <Image
               src={selectedImage || product.cover_image || "/placeholder.png"}
@@ -210,25 +187,26 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* right side */}
-        <div className="w-[700px] h-[900px] flex flex-col gap-[56px]">
-          <div className="flex flex-col gap-5">
-            <h1 className="font-poppins font-semibold text-[32px] text-[#10151F]">
+        {/* Right: Info */}
+        <div className="w-[700px] flex flex-col gap-14">
+          <div>
+            <h1 className="text-[32px] font-semibold text-[#10151F]">
               {product.name}
             </h1>
-            <p className="font-poppins font-semibold text-[32px] text-[#10151F]">
+            <p className="text-[32px] font-semibold text-[#10151F]">
               ${product.price}
             </p>
           </div>
 
-          <div className="w-[380px] h-[350px] gap-[48px]">
+          {/* Options */}
+          <div className="flex flex-col gap-6">
             {/* Colors */}
             {product.available_colors?.length > 0 && (
-              <div className="flex flex-col gap-5">
-                <p className="font-poppins text-[16px] text-[#10151F]">
+              <div>
+                <p className="mb-2 text-[16px] text-[#10151F]">
                   Color: {selectedColor}
                 </p>
-                <div className="flex flex-row gap-3">
+                <div className="flex gap-3">
                   {product.available_colors.map((color, index) => (
                     <div
                       key={index}
@@ -252,30 +230,22 @@ export default function ProductDetailPage() {
 
             {/* Sizes */}
             {product.available_sizes?.length > 0 && (
-              <div className="flex flex-col gap-5 mt-6">
-                <p className="font-poppins text-[16px] text-[#10151F]">
+              <div>
+                <p className="mb-2 text-[16px] text-[#10151F]">
                   Size: {selectedSize}
                 </p>
-                <div className="flex flex-row gap-3">
-                  {product.available_sizes.map((size, index) => (
+                <div className="flex gap-3">
+                  {product.available_sizes.map((size) => (
                     <div
-                      key={index}
+                      key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-[9px] w-[70px] h-[42px] rounded-[10px] cursor-pointer flex items-center justify-center transition-colors ${
+                      className={`px-4 py-2 w-[70px] h-[42px] rounded-[10px] flex items-center justify-center cursor-pointer transition-colors ${
                         selectedSize === size
                           ? "bg-[#F8F6F7] border-2 border-[#10151F]"
                           : "border border-[#E1DFE1] hover:border-[#10151F]"
                       }`}
                     >
-                      <p
-                        className={`font-poppins text-[16px] text-[#10151F] ${
-                          selectedSize === size
-                            ? "font-medium opacity-100"
-                            : "opacity-80"
-                        }`}
-                      >
-                        {size}
-                      </p>
+                      <span className="text-[16px] text-[#10151F]">{size}</span>
                     </div>
                   ))}
                 </div>
@@ -283,15 +253,13 @@ export default function ProductDetailPage() {
             )}
 
             {/* Quantity */}
-            <div className="flex flex-col gap-5 mt-6">
-              <p className="font-poppins text-[16px] text-[#10151F]">
-                Quantity
-              </p>
+            <div>
+              <p className="mb-2 text-[16px] text-[#10151F]">Quantity</p>
               <div className="relative w-[70px] h-[42px]">
                 <select
                   value={quantity}
                   onChange={(e) => setQuantity(Number(e.target.value))}
-                  className="appearance-none w-full h-full border border-[#E1DFE1] rounded-[10px] px-2 pr-6 text-[16px] font-poppins text-[#10151F] opacity-80 cursor-pointer focus:border-[#10151F] focus:outline-none"
+                  className="appearance-none w-full h-full border border-[#E1DFE1] rounded-[10px] px-2 pr-6 text-[16px] font-poppins text-[#10151F] cursor-pointer focus:border-[#10151F] focus:outline-none"
                   disabled={isAddingToCart}
                 >
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
@@ -302,7 +270,7 @@ export default function ProductDetailPage() {
                 </select>
                 <Image
                   src="/down.svg"
-                  alt="dropdown arrow"
+                  alt="dropdown"
                   width={20}
                   height={20}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none"
@@ -310,45 +278,54 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Add to Cart */}
-
-            {/* Add to Cart */}
-            <div className="mt-[40px]">
+            {/* Add to Cart Button */}
+            <div>
               <Button
                 imageSrc="/shopping.svg"
-                text={getButtonText()}
+                text={isAddingToCart ? "Adding..." : "Add to Cart"}
                 onClick={handleAddToCart}
                 height="60px"
                 width="700px"
-                disabled={isDisabled || !isAuthenticated} // disable if not logged in
+                disabled={isDisabled}
               />
             </div>
 
-            {/* Messages under button */}
-            <div className="mt-2 font-poppins text-sm">
+            {/* Messages */}
+            <div className="min-h-[40px]">
               {!isAuthenticated && (
-                <div className="flex flex-row items-center gap-1">
-                  <p className="text-amber-600 whitespace-nowrap">
-                    Sorry, you can't add items to the cart. You need to log in
-                    first.
+                <div className="text-sm">
+                  <p className="text-amber-600 inline mr-2">
+                    Please log in to add items to the cart.
                   </p>
-                  <Link
-                    href="/login"
-                    className="text-blue-600 hover:underline font-medium whitespace-nowrap"
-                  >
+                  <Link href="/login" className="text-blue-600 hover:underline">
                     Log in
                   </Link>
                 </div>
               )}
+
+              {addMessage && (
+                <p
+                  className={`text-sm font-poppins ${
+                    addMessage.includes("success")
+                      ? "text-green-600"
+                      : addMessage.includes("Failed") ||
+                        addMessage.includes("Please")
+                      ? "text-red-600"
+                      : "text-amber-600"
+                  }`}
+                >
+                  {addMessage}
+                </p>
+              )}
             </div>
           </div>
 
-          <hr className="w-[704px] border border-[#E1DFE1] mt-8" />
+          <hr className="border-[#E1DFE1]" />
 
           {/* Details */}
-          <div className="flex flex-col gap-[7px] w-[704px] h-[159px]">
-            <div className="flex flex-row justify-between items-center w-[704px] h-[61px] mt-8">
-              <h2 className="font-poppins font-medium text-[20px] text-[#10151F]">
+          <div>
+            <div className="flex justify-between items-center">
+              <h2 className="text-[20px] font-medium text-[#10151F]">
                 Details
               </h2>
               {product.brand?.image && (
@@ -361,21 +338,14 @@ export default function ProductDetailPage() {
                 />
               )}
             </div>
-            <div className="flex flex-col gap-[19px]">
-              {product.brand?.name && (
-                <p className="font-poppins text-[16px] text-[#3E424A]">
-                  Brand: {product.brand.name}
-                </p>
-              )}
+            <div className="mt-4 flex flex-col gap-4 text-[16px] text-[#3E424A]">
+              {product.brand?.name && <p>Brand: {product.brand.name}</p>}
               {product.description && (
-                <p className="font-poppins text-[16px] text-[#3E424A] line-clamp-3">
-                  {product.description}
-                </p>
+                <p className="line-clamp-3">{product.description}</p>
               )}
               {product.release_year && (
-                <p className="font-poppins text-[14px] text-[#3E424A]">
-                  Release Year:{" "}
-                  {new Date(product.release_year).toLocaleDateString()}
+                <p>
+                  Release Year: {new Date(product.release_year).getFullYear()}
                 </p>
               )}
             </div>
