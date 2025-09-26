@@ -1,9 +1,20 @@
 import { useCart } from "./CartContext";
 
 export default function CartSummary() {
-  const { total_price } = useCart();
-  const delivery = 5; // fixed fee
-  const total = total_price + delivery;
+  const { cart } = useCart();
+  const delivery = 5; // fixed delivery fee
+
+  // Sum all items' total_price
+  const cartTotal = cart.reduce(
+    (sum, item) => sum + (item.total_price || 0),
+    0
+  );
+
+  // Total including delivery
+  const total = cartTotal + delivery;
+
+  console.log("Cart total:", cartTotal);
+  console.log("Total with delivery:", total);
 
   return (
     <div className=" w-[460px] h-[110px]  flex flex-col gap-4">
@@ -13,7 +24,7 @@ export default function CartSummary() {
           Items subtotal
         </span>
         <span className="font-poppins font-normal text-[16px] leading-6 text-[#3E424A] text-right">
-          ${total_price.toFixed(2)}
+          ${total.toFixed(2)}
         </span>
       </div>
 

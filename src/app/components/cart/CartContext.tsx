@@ -5,7 +5,7 @@ interface CartContextType {
   cart: any[];
   isAuthenticated: boolean;
   setCart;
-  removeFromCart: (productId: string) => Promise<void>;
+
   refreshCart: () => Promise<void>;
 }
 
@@ -65,32 +65,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const removeFromCart = async (productId: string) => {
-    if (!token) return;
-
-    try {
-      const res = await fetch(
-        `https://api.redseam.redberryinternship.ge/api/cart/products/${productId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error(`Remove from cart failed: ${res.status}`);
-      }
-
-      console.log(`🗑️ Removed product ${productId}`);
-      await refreshCart();
-    } catch (err) {
-      console.error("❌ removeFromCart error:", err);
-    }
-  };
-
   useEffect(() => {
     console.log("🛒 Cart updated:", cart);
   }, [cart]);
@@ -101,7 +75,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         cart,
         isAuthenticated: !!token,
         setCart,
-        removeFromCart,
+
         refreshCart,
       }}
     >
