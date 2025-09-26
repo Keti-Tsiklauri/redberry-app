@@ -53,11 +53,12 @@ export default function Login() {
 
       if (response.ok) {
         if (data.token) {
-          // Save token
           localStorage.setItem("authToken", data.token);
+
+          // Optional: cookie backup
           document.cookie = `authToken=${data.token}; path=/;`;
 
-          // Notify CartContext that auth state changed
+          // Tell other contexts (like Cart) that auth changed
           window.dispatchEvent(new Event("authStateChanged"));
         }
 
