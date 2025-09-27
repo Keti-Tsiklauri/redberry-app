@@ -83,7 +83,7 @@ export default function CartItems() {
     );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 overflow-x-hidden">
       {cart.map((item) => {
         const itemKey = getItemKey(item.id, item.color, item.size);
         const isItemLoading = loadingItems.includes(itemKey) || cartLoading;
@@ -108,7 +108,7 @@ export default function CartItems() {
 
             <div className="flex flex-col justify-between w-[343px] h-[117px]">
               <div className="flex flex-col gap-2">
-                <div className="flex flex-row items-center justify-between">
+                <div className="flex flex-row items-center justify-between w-[300px]">
                   <p className="font-poppins font-medium text-[14px] text-[#10151F]">
                     {item.name}
                   </p>
@@ -128,12 +128,12 @@ export default function CartItems() {
                 )}
               </div>
 
-              <div className="flex justify-between items-center mt-2">
+              <div className="flex justify-between items-center mt-2 w-[300px]">
                 <div className="flex items-center gap-2 w-[70px] h-[26px] border border-[#E1DFE1] rounded-full px-2">
                   <button
                     onClick={() => decreaseQty(item.id, item.color, item.size)}
                     disabled={isItemLoading}
-                    className="w-4 h-4 text-[#3E424A] hover:text-[#10151F] flex items-center justify-center"
+                    className="w-4 h-4 text-[#3E424A] hover:text-[#10151F] flex items-center justify-center cursor-pointer"
                   >
                     -
                   </button>
@@ -143,7 +143,7 @@ export default function CartItems() {
                   <button
                     onClick={() => increaseQty(item.id, item.color, item.size)}
                     disabled={isItemLoading}
-                    className="w-4 h-4 text-[#3E424A] hover:text-[#10151F] flex items-center justify-center"
+                    className="w-4 h-4 text-[#3E424A] hover:text-[#10151F] flex items-center justify-center cursor-pointer"
                   >
                     +
                   </button>
@@ -151,7 +151,7 @@ export default function CartItems() {
                 <button
                   onClick={() => removeItem(item.id, item.color, item.size)}
                   disabled={isItemLoading}
-                  className="text-[#3E424A] text-[12px] hover:text-red-500"
+                  className="text-[#3E424A] text-[12px] hover:text-red-500 cursor-pointer"
                 >
                   {isItemLoading ? "..." : "Remove"}
                 </button>
