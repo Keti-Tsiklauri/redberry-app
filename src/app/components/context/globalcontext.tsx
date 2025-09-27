@@ -5,6 +5,8 @@ import { createContext, useContext, useState, ReactNode } from "react";
 interface GlobalContextType {
   showCart: boolean;
   setShowCart: (show: boolean) => void;
+  showSuccessModal: boolean;
+  setShowSuccessModal: (show: boolean) => void;
   checkout: boolean;
   setCheckout: (show: boolean) => void;
 }
@@ -13,10 +15,18 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export function GlobalProvider({ children }: { children: ReactNode }) {
   const [showCart, setShowCart] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [checkout, setCheckout] = useState(false);
   return (
     <GlobalContext.Provider
-      value={{ showCart, setShowCart, checkout, setCheckout }}
+      value={{
+        showCart,
+        setShowCart,
+        checkout,
+        setCheckout,
+        showSuccessModal,
+        setShowSuccessModal,
+      }}
     >
       {children}
     </GlobalContext.Provider>

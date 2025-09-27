@@ -8,22 +8,31 @@ import Header from "../components/auth/Header";
 import OrderDetails from "../components/checkout/OrderDetails";
 import { useUser } from "../components/context/userContext";
 import { useGlobal } from "../components/context/globalcontext";
+import SuccessModal from "../components/modal/SuccessModal";
 
 export default function Checkout() {
   const { cart, removeAllItems } = useCart();
-  const { checkout } = useGlobal(); // boolean from context ✅
+  const { checkout, showSuccessModal, setShowSuccessModal } = useGlobal(); // include showSuccessModal ✅
 
   function handlePay() {
     if (checkout) {
       removeAllItems();
       console.log("Checkout success, cart cleared!");
+      setShowSuccessModal(true);
     } else {
       console.log("Please fill all fields before checkout");
     }
   }
-  console.log(checkout);
+
   return (
-    <div>
+    <div className="relative">
+      {/* ✅ Show modal on top */}
+      {showSuccessModal && (
+        <div className="absolute inset-0  bg-white bg-opacity-50 z-50">
+          <SuccessModal />
+        </div>
+      )}
+
       <Header />
       <p className=" top-[152px] mx-auto py-[10px] w-[1920px] h-[63px] font-poppins font-semibold text-[42px] leading-[63px] text-[#10151F]">
         Checkout
@@ -49,7 +58,7 @@ export default function Checkout() {
             )}
           </div>
           <div className="flex flex-col justify-between h-[250px]">
-            <CartSummary />{" "}
+            <CartSummary />
             <Button text="Pay" width="460px" onClick={handlePay} />
           </div>
         </div>

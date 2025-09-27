@@ -53,7 +53,7 @@ export default function Button({
               className="cursor-pointer"
             />
           )}
-          <span className="font-poppins font-medium text-[18px] leading-[27px] text-white cursor-pointer">
+          <span className="font-poppins font-medium text-[18px] leading-[27px] text-white cursor-pointer whitespace-nowrap">
             {text}
           </span>
         </>
