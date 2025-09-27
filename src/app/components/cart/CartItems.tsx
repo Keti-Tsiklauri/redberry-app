@@ -1,97 +1,115 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useCart } from "./CartContext";
 
 export default function CartItems() {
-  const { cart, setCart } = useCart();
+  const {
+    cart,
+    updateQuantity,
+    removeFromCart,
+    isLoading: cartLoading,
+  } = useCart();
   const [loadingItems, setLoadingItems] = useState<string[]>([]);
 
   const getItemKey = (id: string | number, color?: string, size?: string) =>
     `${id}-${color || ""}-${size || ""}`;
 
-  const increaseQty = (id: string, color?: string, size?: string) => {
-    const itemKey = getItemKey(id, color, size);
-    setLoadingItems((prev) => [...prev, itemKey]);
+  // Get image based on selected color index
+  const getImageForColor = (item: any) => {
+    if (!item.images || !item.images.length)
+      return item.cover_image || "/image.png";
+    if (!item.available_colors || !item.color)
+      return item.images[0] || item.cover_image;
 
-    setCart((prev) =>
-      prev.map((item) =>
-        item.id === id && item.color === color && item.size === size
-          ? {
-              ...item,
-              quantity: item.quantity + 1,
-              total_price: (item.quantity + 1) * item.price,
-            }
-          : item
-      )
+    const colorIndex = item.available_colors.findIndex(
+      (c: string) => c.toLowerCase() === item.color.toLowerCase()
     );
 
-    setLoadingItems((prev) => prev.filter((key) => key !== itemKey));
+    return item.images[colorIndex] || item.cover_image || item.images[0];
   };
 
-  const decreaseQty = (id: string, color?: string, size?: string) => {
-    const itemKey = getItemKey(id, color, size);
-    setLoadingItems((prev) => [...prev, itemKey]);
-
-    setCart((prev) =>
-      prev.map((item) =>
-        item.id === id && item.color === color && item.size === size
-          ? {
-              ...item,
-              quantity: item.quantity > 1 ? item.quantity - 1 : 1,
-              total_price:
-                item.price * (item.quantity > 1 ? item.quantity - 1 : 1),
-            }
-          : item
-      )
-    );
-
-    setLoadingItems((prev) => prev.filter((key) => key !== itemKey));
+  const increaseQty = async (id: string, color?: string, size?: string) => {
+    const key = getItemKey(id, color, size);
+    setLoadingItems((prev) => [...prev, key]);
+    try {
+      const current = cart.find(
+        (i) => i.id === id && i.color === color && i.size === size
+      );
+      if (current) await updateQuantity(id, current.quantity + 1, color, size);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingItems((prev) => prev.filter((k) => k !== key));
+    }
   };
 
-  const removeItem = (id: string, color?: string, size?: string) => {
-    const itemKey = getItemKey(id, color, size);
-    setLoadingItems((prev) => [...prev, itemKey]);
-
-    setCart((prev) =>
-      prev.filter(
-        (item) =>
-          !(item.id === id && item.color === color && item.size === size)
-      )
-    );
-
-    setLoadingItems((prev) => prev.filter((key) => key !== itemKey));
+  const decreaseQty = async (id: string, color?: string, size?: string) => {
+    const key = getItemKey(id, color, size);
+    setLoadingItems((prev) => [...prev, key]);
+    try {
+      const current = cart.find(
+        (i) => i.id === id && i.color === color && i.size === size
+      );
+      if (current) {
+        if (current.quantity <= 1) await removeFromCart(id, color, size);
+        else await updateQuantity(id, current.quantity - 1, color, size);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingItems((prev) => prev.filter((k) => k !== key));
+    }
   };
 
-  if (!cart || cart.length === 0) {
+  const removeItem = async (id: string, color?: string, size?: string) => {
+    const key = getItemKey(id, color, size);
+    setLoadingItems((prev) => [...prev, key]);
+    try {
+      await removeFromCart(id, color, size);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingItems((prev) => prev.filter((k) => k !== key));
+    }
+  };
+
+  if (!cart || !cart.length)
     return (
       <div className="flex items-center justify-center p-8">
         <p className="text-gray-500 font-poppins text-sm">Your cart is empty</p>
       </div>
     );
-  }
 
   return (
     <div className="space-y-4">
       {cart.map((item) => {
         const itemKey = getItemKey(item.id, item.color, item.size);
-        const isItemLoading = loadingItems.includes(itemKey);
+        const isItemLoading = loadingItems.includes(itemKey) || cartLoading;
+        const displayImage = getImageForColor(item);
 
         return (
           <div
             key={itemKey}
-            className={`flex flex-row items-center gap-[17px] w-[460px] h-[134px] mt-[36px] ${
+            className={`flex items-center gap-4 w-[460px] h-[134px] mt-6 ${
               isItemLoading ? "opacity-50 pointer-events-none" : ""
             }`}
           >
-            <div
-              className="w-[100px] h-[134px] rounded-[10px] border border-[#E1DFE1] bg-cover bg-center"
-              style={{ backgroundImage: `url(${item.image || "/image.png"})` }}
-            />
-            <div className="flex flex-col items-start gap-[13px] w-[343px] h-[117px]">
-              <div className="flex flex-row justify-between w-full h-[78px] gap-[60px]">
-                <div className="flex flex-col justify-center items-start gap-[8px] w-[285px] h-[78px]">
-                  <p className="font-poppins font-medium text-[14px] leading-[21px] text-[#10151F]">
+            <div className="w-[100px] h-[134px] rounded-[10px] border border-[#E1DFE1] overflow-hidden flex-shrink-0">
+              <Image
+                src={displayImage}
+                alt={item.name}
+                width={100}
+                height={134}
+                className="object-cover w-full h-full"
+              />
+            </div>
+
+            <div className="flex flex-col justify-between w-[343px] h-[117px]">
+              <div className="flex justify-between">
+                <div>
+                  <p className="font-poppins font-medium text-[14px] text-[#10151F]">
                     {item.name}
                   </p>
                   {item.color && (
@@ -105,29 +123,27 @@ export default function CartItems() {
                     </p>
                   )}
                 </div>
-                <div className="flex justify-center items-center">
-                  <p className="font-poppins font-medium text-[18px] text-[#10151F]">
-                    ${item.total_price || item.price * item.quantity}
-                  </p>
-                </div>
+                <p className="font-poppins font-medium text-[18px] text-[#10151F]">
+                  ${item.total_price || item.price * item.quantity}
+                </p>
               </div>
 
-              <div className="flex flex-row justify-between items-center w-full h-[26px] gap-[13px]">
-                <div className="flex items-center gap-[2px] w-[70px] h-[26px] border border-[#E1DFE1] rounded-full px-2">
+              <div className="flex justify-between items-center mt-2">
+                <div className="flex items-center gap-2 w-[70px] h-[26px] border border-[#E1DFE1] rounded-full px-2">
                   <button
                     onClick={() => decreaseQty(item.id, item.color, item.size)}
-                    disabled={isItemLoading || item.quantity <= 1}
-                    className="w-4 h-4 text-[#3E424A] hover:text-[#10151F] disabled:opacity-50"
+                    disabled={isItemLoading}
+                    className="w-4 h-4 text-[#3E424A] hover:text-[#10151F] flex items-center justify-center"
                   >
                     -
                   </button>
-                  <span className="font-poppins text-[12px] text-[#3E424A] min-w-[20px] text-center">
+                  <span className="font-poppins text-[12px] text-center text-[#3E424A] min-w-[20px]">
                     {item.quantity}
                   </span>
                   <button
                     onClick={() => increaseQty(item.id, item.color, item.size)}
                     disabled={isItemLoading}
-                    className="w-4 h-4 text-[#3E424A] hover:text-[#10151F] disabled:opacity-50"
+                    className="w-4 h-4 text-[#3E424A] hover:text-[#10151F] flex items-center justify-center"
                   >
                     +
                   </button>
