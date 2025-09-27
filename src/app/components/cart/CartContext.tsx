@@ -37,7 +37,7 @@ interface CartContextType {
     size?: string
   ) => Promise<void>;
   removeFromCart: (id: string, color?: string, size?: string) => Promise<void>;
-  removeAllItems: (id: string, color?: string, size?: string) => Promise<void>;
+  removeAllItems;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
 

@@ -7,10 +7,21 @@ import CartSummary from "../components/cart/CartSummary";
 import Header from "../components/auth/Header";
 import OrderDetails from "../components/checkout/OrderDetails";
 import { useUser } from "../components/context/userContext";
+import { useGlobal } from "../components/context/globalcontext";
 
 export default function Checkout() {
   const { cart, removeAllItems } = useCart();
+  const { checkout } = useGlobal(); // boolean from context ✅
 
+  function handlePay() {
+    if (checkout) {
+      removeAllItems();
+      console.log("Checkout success, cart cleared!");
+    } else {
+      console.log("Please fill all fields before checkout");
+    }
+  }
+  console.log(checkout);
   return (
     <div>
       <Header />
@@ -39,7 +50,7 @@ export default function Checkout() {
           </div>
           <div className="flex flex-col justify-between h-[250px]">
             <CartSummary />{" "}
-            <Button text="Pay" width="460px" onClick={removeAllItems} />
+            <Button text="Pay" width="460px" onClick={handlePay} />
           </div>
         </div>
       </div>

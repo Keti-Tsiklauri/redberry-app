@@ -1,13 +1,13 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
 
 interface InputProps {
   label?: string;
   width?: string;
   height?: string;
   imageSrc?: string;
-  defaultValue?: string;
+  value: string;
+  onChange: (value: string) => void;
 }
 
 export default function InputField({
@@ -15,10 +15,9 @@ export default function InputField({
   width = "277px",
   height = "42px",
   imageSrc,
-  defaultValue,
+  value,
+  onChange,
 }: InputProps) {
-  const [value, setValue] = useState(defaultValue || "");
-
   return (
     <div
       className="flex justify-end items-center px-3 bg-white border border-[#E1DFE1] rounded-[8px] box-border"
@@ -29,7 +28,7 @@ export default function InputField({
         <input
           type="text"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           placeholder={label}
           className="w-full h-full bg-transparent outline-none font-poppins text-[14px] text-[#3E424A]"
         />

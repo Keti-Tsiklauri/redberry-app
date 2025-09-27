@@ -5,15 +5,19 @@ import { createContext, useContext, useState, ReactNode } from "react";
 interface GlobalContextType {
   showCart: boolean;
   setShowCart: (show: boolean) => void;
+  checkout: boolean;
+  setCheckout: (show: boolean) => void;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export function GlobalProvider({ children }: { children: ReactNode }) {
   const [showCart, setShowCart] = useState(false);
-  const [user, setUser] = useState();
+  const [checkout, setCheckout] = useState(false);
   return (
-    <GlobalContext.Provider value={{ showCart, setShowCart }}>
+    <GlobalContext.Provider
+      value={{ showCart, setShowCart, checkout, setCheckout }}
+    >
       {children}
     </GlobalContext.Provider>
   );
