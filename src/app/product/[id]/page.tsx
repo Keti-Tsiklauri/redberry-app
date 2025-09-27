@@ -44,54 +44,20 @@ export default function ProductDetailPage() {
 
   const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 
-  const { cart, setCart, isAuthenticated } = useCart(); // get cart and setter
+  const {
+    cart,
+    isAuthenticated,
+    isLoading: cartLoading,
+    error: cartError,
+    addToCart,
+    getItemQuantity,
+    isItemInCart,
+  } = useCart();
 
-  const handleAddToCart = () => {
-    if (!product) return;
-
-    if (!isAuthenticated) {
-      setAddMessage("Please log in to add items to the cart.");
-      return;
-    }
-
-    setIsAddingToCart(true);
-
-    // Create new cart item
-    const newItem = {
-      id: product.id.toString(),
-      name: product.name,
-      price: product.price,
-      quantity,
-      color: selectedColor,
-      size: selectedSize,
-      image: selectedImage || product.cover_image,
-      total_price: product.price * quantity,
-    };
-
-    // Check if item with same id, color, and size exists
-    const existingIndex = cart.findIndex(
-      (item) =>
-        item.id === newItem.id &&
-        item.color === newItem.color &&
-        item.size === newItem.size
-    );
-
-    let updatedCart;
-    if (existingIndex !== -1) {
-      // If exists, increase quantity
-      updatedCart = [...cart];
-      updatedCart[existingIndex].quantity += quantity;
-      updatedCart[existingIndex].total_price =
-        updatedCart[existingIndex].price * updatedCart[existingIndex].quantity;
-    } else {
-      // Else, add new item
-      updatedCart = [...cart, newItem];
-    }
-
-    setCart(updatedCart);
-    setAddMessage("✅ Added to cart successfully!");
-    setIsAddingToCart(false);
-  };
+  useEffect(() => {
+    console.log("🛒 Cart updated:", cart);
+    console.log("🔐 Is authenticated:", isAuthenticated);
+  }, [cart, isAuthenticated]);
 
   // Fetch product details
   useEffect(() => {
@@ -128,16 +94,57 @@ export default function ProductDetailPage() {
       setSelectedColor(product.available_colors[index]);
   };
 
-  // Clear message when auth status changes
-  useEffect(() => {
-    if (addMessage && addMessage.includes("log in") && isAuthenticated) {
-      setAddMessage("");
+  const handleAddToCart = async () => {
+    if (!product || !selectedColor || !selectedSize) {
+      setAddMessage("Please select color and size");
+      setTimeout(() => setAddMessage(""), 3000);
+      return;
     }
-  }, [isAuthenticated, addMessage]);
 
-  // Disable button conditions
+    if (!isAuthenticated) {
+      setAddMessage("Please log in to add items to cart");
+      setTimeout(() => setAddMessage(""), 3000);
+      return;
+    }
+
+    setIsAddingToCart(true);
+    setAddMessage("");
+
+    try {
+      await addToCart({
+        id: product.id.toString(),
+        name: product.name,
+        price: product.price,
+        quantity,
+        color: selectedColor,
+        size: selectedSize,
+        image: selectedImage || product.cover_image || "/placeholder.png",
+      });
+
+      setAddMessage("✅ Item added to cart successfully!");
+    } catch (err: any) {
+      console.error("Failed to add to cart:", err);
+      setAddMessage("❌ Failed to add to cart. Please try again.");
+    } finally {
+      setIsAddingToCart(false);
+      setTimeout(() => setAddMessage(""), 3000);
+    }
+  };
+
+  // Check if current product variant is in cart
+  const currentItemQuantity =
+    product && selectedColor && selectedSize
+      ? getItemQuantity(product.id.toString(), selectedColor, selectedSize)
+      : 0;
+
+  const isCurrentItemInCart =
+    product && selectedColor && selectedSize
+      ? isItemInCart(product.id.toString(), selectedColor, selectedSize)
+      : false;
+
+  // Only disable if missing selections or currently adding - NOT based on auth
   const isDisabled =
-    !selectedColor || !selectedSize || isAddingToCart || !isAuthenticated;
+    !selectedColor || !selectedSize || isAddingToCart || cartLoading;
 
   if (loading) return <p>Loading product...</p>;
   if (error) return <p className="text-red-500">Error: {error}</p>;
@@ -289,20 +296,36 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
+            {/* Cart Item Info */}
+            {isCurrentItemInCart && (
+              <div className="bg-blue-50 border border-blue-200 rounded-[10px] p-3">
+                <p className="text-blue-800 text-sm">
+                  This item is already in your cart (Quantity:{" "}
+                  {currentItemQuantity})
+                </p>
+              </div>
+            )}
+
             {/* Add to Cart Button */}
             <div>
               <Button
                 imageSrc="/shopping.svg"
-                text={isAddingToCart ? "Adding..." : "Add to Cart"}
+                text={
+                  isAddingToCart
+                    ? "Adding..."
+                    : cartLoading
+                    ? "Loading..."
+                    : "Add to Cart"
+                }
+                onClick={handleAddToCart}
                 height="60px"
                 width="700px"
                 disabled={isDisabled}
-                onClick={handleAddToCart}
               />
             </div>
 
             {/* Messages */}
-            <div className="min-h-[60px] flex flex-col gap-2">
+            <div className="min-h-[60px] space-y-2">
               {!isAuthenticated && (
                 <div className="text-sm">
                   <p className="text-amber-600 inline mr-2">
@@ -316,8 +339,8 @@ export default function ProductDetailPage() {
 
               {addMessage && (
                 <p
-                  className={`text-sm font-medium ${
-                    addMessage.includes("✅") || addMessage.includes("success")
+                  className={`text-sm font-poppins ${
+                    addMessage.includes("success")
                       ? "text-green-600"
                       : addMessage.includes("Failed") ||
                         addMessage.includes("Please")
@@ -327,6 +350,26 @@ export default function ProductDetailPage() {
                 >
                   {addMessage}
                 </p>
+              )}
+
+              {cartError && (
+                <p className="text-sm font-poppins text-red-600">
+                  Cart Error: {cartError}
+                </p>
+              )}
+
+              {/* Debug info (development only) */}
+              {process.env.NODE_ENV === "development" && (
+                <div className="text-xs text-gray-500 mt-2 space-y-1">
+                  <p>Debug Info:</p>
+                  <p>- Cart items: {cart.length}</p>
+                  <p>- Authenticated: {isAuthenticated ? "Yes" : "No"}</p>
+                  <p>
+                    - Current item in cart: {isCurrentItemInCart ? "Yes" : "No"}
+                  </p>
+                  <p>- Current item quantity: {currentItemQuantity}</p>
+                  <p>- Cart loading: {cartLoading ? "Yes" : "No"}</p>
+                </div>
               )}
             </div>
           </div>

@@ -1,29 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCart } from "./CartContext";
 
 export default function CartItems() {
   const { cart, setCart } = useCart();
   const [loadingItems, setLoadingItems] = useState<string[]>([]);
 
-  // Load cart from localStorage on mount if empty
-  useEffect(() => {
-    if (!cart || cart.length === 0) {
-      const storedCart = localStorage.getItem("cart");
-      if (storedCart) setCart(JSON.parse(storedCart));
-    }
-  }, [cart, setCart]);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
-
-  const getItemKey = (id: number, color?: string, size?: string) =>
+  const getItemKey = (id: string | number, color?: string, size?: string) =>
     `${id}-${color || ""}-${size || ""}`;
 
-  const increaseQty = (id: number, color?: string, size?: string) => {
+  const increaseQty = (id: string, color?: string, size?: string) => {
     const itemKey = getItemKey(id, color, size);
     setLoadingItems((prev) => [...prev, itemKey]);
 
@@ -42,7 +29,7 @@ export default function CartItems() {
     setLoadingItems((prev) => prev.filter((key) => key !== itemKey));
   };
 
-  const decreaseQty = (id: number, color?: string, size?: string) => {
+  const decreaseQty = (id: string, color?: string, size?: string) => {
     const itemKey = getItemKey(id, color, size);
     setLoadingItems((prev) => [...prev, itemKey]);
 
@@ -62,7 +49,7 @@ export default function CartItems() {
     setLoadingItems((prev) => prev.filter((key) => key !== itemKey));
   };
 
-  const removeItem = (id: number, color?: string, size?: string) => {
+  const removeItem = (id: string, color?: string, size?: string) => {
     const itemKey = getItemKey(id, color, size);
     setLoadingItems((prev) => [...prev, itemKey]);
 

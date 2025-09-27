@@ -9,6 +9,7 @@ import PasswordField from "../components/auth/PasswordField";
 import Button from "../components/button/Button";
 import GeneralError from "../components/auth/GeneralError";
 import Logo from "../components/logo/Logo";
+import { useCart } from "../components/cart/CartContext";
 
 export default function Login() {
   const [show, setShow] = useState(true);
@@ -16,7 +17,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [backendErrors, setBackendErrors] = useState<string[]>([]);
-
+  const { refreshCart } = useCart();
   const router = useRouter();
 
   const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
@@ -54,7 +55,7 @@ export default function Login() {
       if (response.ok) {
         if (data.token) {
           localStorage.setItem("authToken", data.token);
-
+          await refreshCart();
           // Optional: cookie backup
           document.cookie = `authToken=${data.token}; path=/;`;
 
