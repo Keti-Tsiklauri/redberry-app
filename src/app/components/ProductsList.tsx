@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { useEffect, useState } from "react";
 import ProductsGrid from "./ProductsGrid";
 import Pagination from "./Pagination";
@@ -30,7 +31,7 @@ export default function HomePage() {
 
   const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError("");
 
@@ -62,11 +63,11 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, priceFrom, priceTo, sortOption]);
 
   useEffect(() => {
     fetchProducts();
-  }, [currentPage, priceFrom, priceTo, sortOption]);
+  }, [currentPage, priceFrom, priceTo, sortOption, fetchProducts]);
 
   const startResult = (currentPage - 1) * resultsPerPage + 1;
   const endResult = Math.min(currentPage * resultsPerPage, totalResults);

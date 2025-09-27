@@ -2,7 +2,25 @@ import Link from "next/link";
 import Button from "../button/Button";
 import InputField from "./InputField";
 import PasswordField from "./PasswordField";
+type BackendErrors = {
+  username?: string[];
+  email?: string[];
+  password?: string[];
+  password_confirmation?: string[];
+  avatar?: string[];
+  general?: string[];
+};
 
+interface AuthFormProps {
+  username: string;
+  email: string;
+  password: string;
+  repeatPassword: string;
+  onChange: (field: keyof BackendErrors, value: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  errors: BackendErrors;
+  isLoading: boolean;
+}
 export default function AuthForm({
   username,
   email,
@@ -12,12 +30,14 @@ export default function AuthForm({
   onSubmit,
   errors,
   isLoading,
-}: any) {
+}: AuthFormProps) {
   return (
     <form className="flex flex-col gap-6 mt-6" onSubmit={onSubmit}>
       <InputField
         value={username}
-        onChange={(e) => onChange("username", e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          onChange("username", e.target.value)
+        }
         placeholder="Username"
         required
         disabled={isLoading}
@@ -26,7 +46,9 @@ export default function AuthForm({
       <InputField
         type="email"
         value={email}
-        onChange={(e) => onChange("email", e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          onChange("email", e.target.value)
+        }
         placeholder="Email"
         required
         disabled={isLoading}
@@ -34,7 +56,9 @@ export default function AuthForm({
       />
       <PasswordField
         value={password}
-        onChange={(e) => onChange("password", e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          onChange("password", e.target.value)
+        }
         placeholder="Password"
         required
         disabled={isLoading}
@@ -42,7 +66,9 @@ export default function AuthForm({
       />
       <PasswordField
         value={repeatPassword}
-        onChange={(e) => onChange("password_confirmation", e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          onChange("password_confirmation", e.target.value)
+        }
         placeholder="Repeat Password"
         required
         disabled={isLoading}

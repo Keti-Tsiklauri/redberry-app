@@ -57,8 +57,6 @@ export default function ProductDetailPage() {
 
   // Fetch product details
   useEffect(() => {
-    if (!id) return;
-
     const fetchProduct = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/products/${id}`);
@@ -69,8 +67,12 @@ export default function ProductDetailPage() {
         setSelectedImage(data.images?.[0] || data.cover_image || null);
         setSelectedColor(data.available_colors?.[0] || null);
         setSelectedSize(data.available_sizes?.[0] || null);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
       } finally {
         setLoading(false);
       }
@@ -119,7 +121,7 @@ export default function ProductDetailPage() {
       });
 
       setAddMessage("✅ Item added to cart successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to add to cart:", err);
       setAddMessage("❌ Failed to add to cart. Please try again.");
     } finally {
