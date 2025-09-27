@@ -2,10 +2,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
-  id: number;
-  username: string;
+  id: string;
+  name: string;
   email: string;
-  is_admin: number;
+  username?: string; // missing in API response
+  is_admin?: boolean; // missing in API response
   avatar?: string;
 }
 

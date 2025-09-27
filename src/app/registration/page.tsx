@@ -2,14 +2,21 @@
 
 import Image from "next/image";
 import Logo from "../components/logo/Logo";
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import AuthForm from "../components/auth/AuthForm";
 import AvatarUpload from "../components/auth/AvatarUpload";
 import GeneralError from "../components/auth/GeneralError";
 import Link from "next/link";
 import { useUser } from "../components/context/UserContext";
-
+interface user {
+  id: string;
+  name: string;
+  email: string;
+  username?: string; // missing in API response
+  is_admin?: boolean; // missing in API response
+  avatar?: string;
+}
 const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 const REGISTER_ENDPOINT = "/register";
 const API_KEY = process.env.NEXT_PUBLIC_REDBERRY_API_KEY;
@@ -23,9 +30,16 @@ type BackendErrors = {
   general?: string[];
 };
 
+type RegisterResponse = {
+  user;
+  token: string;
+  errors?: BackendErrors;
+  message?: string;
+};
+
 export default function Registration() {
   const router = useRouter();
-  const { setUser } = useUser(); // useUser for context management
+  const { setUser } = useUser();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -34,8 +48,6 @@ export default function Registration() {
   const [avatar, setAvatar] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [backendErrors, setBackendErrors] = useState<BackendErrors>({});
-
-  // Clear user state and localStorage on initial load
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,10 +65,8 @@ export default function Registration() {
       return;
     }
 
-    if (backendErrors.avatar) {
+    if (backendErrors.avatar)
       setBackendErrors((prev) => ({ ...prev, avatar: undefined }));
-    }
-
     setAvatar(file);
   };
 
@@ -64,9 +74,8 @@ export default function Registration() {
     setAvatar(null);
     const fileInput = document.getElementById("avatar") as HTMLInputElement;
     if (fileInput) fileInput.value = "";
-    if (backendErrors.avatar) {
+    if (backendErrors.avatar)
       setBackendErrors((prev) => ({ ...prev, avatar: undefined }));
-    }
   };
 
   const handleInputChange = (field: keyof BackendErrors, value: string) => {
@@ -84,12 +93,11 @@ export default function Registration() {
         break;
       case "password":
         setPassword(value);
-        if (backendErrors.password_confirmation) {
+        if (backendErrors.password_confirmation)
           setBackendErrors((prev) => ({
             ...prev,
             password_confirmation: undefined,
           }));
-        }
         break;
       case "password_confirmation":
         setRepeatPassword(value);
@@ -122,27 +130,30 @@ export default function Registration() {
       });
 
       const contentType = response.headers.get("Content-Type") || "";
-      let data: any = {};
+      let data: RegisterResponse = { user: {}, token: "" };
 
-      if (contentType.includes("application/json")) {
+      if (contentType.includes("application/json"))
         data = await response.json();
-      } else {
+      else {
         const text = await response.text();
-        data = { message: text };
+        data = { user: {}, token: "", message: text };
       }
 
       if (response.ok && data.user && data.token) {
-        // Save user in context
-        setUser(data.user, data.token);
+        // Ensure minimal User structure
+        const userData: user = {
+          id: data.user.id ?? "",
+          name: data.user.name ?? "",
+          email: data.user.email ?? "",
+          username: data.user.username ?? "",
+          is_admin: data.user.is_admin ?? false,
+        };
 
-        // Save in localStorage
+        setUser(userData, data.token);
         localStorage.setItem("authToken", data.token);
-        localStorage.setItem("userData", JSON.stringify(data.user));
-        localStorage.setItem("userId", data.user.id.toString());
-        localStorage.setItem("username", data.user.username);
-        localStorage.setItem("userEmail", data.user.email);
+        localStorage.setItem("userData", JSON.stringify(userData));
 
-        document.cookie = `authToken=${data.token}; path=/;`;
+        document.cookie = `authToken=${data.token}; path=/`;
 
         // Reset form
         setUsername("");
@@ -152,21 +163,16 @@ export default function Registration() {
         setAvatar(null);
         setBackendErrors({});
 
-        router.push("/"); // redirect home
+        router.push("/");
         return;
       }
 
-      if (data.errors) {
-        setBackendErrors(data.errors);
-      } else if (data.message) {
-        setBackendErrors({ general: [data.message] });
-      } else {
+      if (data.errors) setBackendErrors(data.errors);
+      else if (data.message) setBackendErrors({ general: [data.message] });
+      else
         setBackendErrors({
-          general: [
-            `Registration failed (${response.status}). Please try again.`,
-          ],
+          general: [`Registration failed (${response.status}).`],
         });
-      }
     } catch (err: unknown) {
       let errorMessage = "Network error. Please try again.";
       if (err instanceof Error) errorMessage = err.message;
@@ -190,7 +196,7 @@ export default function Registration() {
           />
           <Link
             href="./login"
-            className="font-poppins font-medium text-[12px] leading-[18px] text-[#10151F] cursor-pointer"
+            className="font-poppins font-medium text-[12px] text-[#10151F]"
           >
             Log in
           </Link>
@@ -199,7 +205,6 @@ export default function Registration() {
 
       {/* Main */}
       <div className="flex flex-row">
-        {/* Left */}
         <div className="flex-1">
           <Image
             src="/main-image.svg"
@@ -210,22 +215,18 @@ export default function Registration() {
           />
         </div>
 
-        {/* Right */}
         <div className="flex-1">
           <div className="w-[554px] mx-auto flex flex-col items-start mt-[240px]">
             <p className="font-poppins font-semibold text-[42px] text-[#10151F]">
               Registration
             </p>
-
             <GeneralError errors={backendErrors.general} />
-
             <AvatarUpload
               avatar={avatar}
               onChange={handleAvatarChange}
               onRemove={handleAvatarRemove}
               errors={backendErrors.avatar}
             />
-
             <AuthForm
               username={username}
               email={email}

@@ -1,8 +1,12 @@
-"use client";
-
 import { useState } from "react";
 import Image from "next/image";
-import { useCart } from "./CartContext";
+import { useCart, CartItem } from "./CartContext";
+
+interface CartItemExtended extends CartItem {
+  images?: string[];
+  available_colors?: string[];
+  cover_image: string;
+}
 
 export default function CartItems() {
   const {
@@ -16,15 +20,15 @@ export default function CartItems() {
   const getItemKey = (id: string | number, color?: string, size?: string) =>
     `${id}-${color || ""}-${size || ""}`;
 
-  // Get image based on selected color index
-  const getImageForColor = (item: any) => {
+  // Get image based on selected color
+  const getImageForColor = (item: CartItemExtended) => {
     if (!item.images || !item.images.length)
       return item.cover_image || "/image.png";
     if (!item.available_colors || !item.color)
       return item.images[0] || item.cover_image;
 
     const colorIndex = item.available_colors.findIndex(
-      (c: string) => c.toLowerCase() === item.color.toLowerCase()
+      (c) => c.toLowerCase() === item.color?.toLowerCase()
     );
 
     return item.images[colorIndex] || item.cover_image || item.images[0];
@@ -87,7 +91,7 @@ export default function CartItems() {
       {cart.map((item) => {
         const itemKey = getItemKey(item.id, item.color, item.size);
         const isItemLoading = loadingItems.includes(itemKey) || cartLoading;
-        const displayImage = getImageForColor(item);
+        const displayImage = getImageForColor(item as CartItemExtended);
 
         return (
           <div

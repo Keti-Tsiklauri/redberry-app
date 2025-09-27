@@ -13,6 +13,16 @@ export interface CartItem {
   total_price: number;
 }
 
+interface AddToCartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  color?: string;
+  size?: string;
+  image?: string;
+}
+
 interface CartContextType {
   cart: CartItem[];
   isAuthenticated: boolean;
@@ -20,16 +30,7 @@ interface CartContextType {
   error: string | null;
   total_price: number;
 
-  // Core operations
-  addToCart: (item: {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-    color?: string;
-    size?: string;
-    image?: string;
-  }) => Promise<void>;
+  addToCart: (item: AddToCartItem) => Promise<void>;
   updateQuantity: (
     id: string,
     quantity: number,
@@ -37,11 +38,10 @@ interface CartContextType {
     size?: string
   ) => Promise<void>;
   removeFromCart: (id: string, color?: string, size?: string) => Promise<void>;
-  removeAllItems;
+  removeAllItems: () => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
 
-  // Utility functions
   getCartItemCount: () => number;
   isItemInCart: (id: string, color?: string, size?: string) => boolean;
   getItemQuantity: (id: string, color?: string, size?: string) => number;
@@ -57,20 +57,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 
-  const getToken = () => {
-    // Check both possible token keys
-    return localStorage.getItem("token") || localStorage.getItem("authToken");
-  };
-  useEffect(() => {
-    const token = getToken();
-    if (token) {
-      setIsAuthenticated(true);
-      refreshCart();
-    } else {
-      setIsAuthenticated(false);
-      setCart([]);
-    }
-  }, []);
+  const getToken = () =>
+    localStorage.getItem("token") || localStorage.getItem("authToken");
 
   // Calculate total price
   const total_price = cart.reduce(
@@ -78,7 +66,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     0
   );
 
-  // Utility to handle API calls with loading and error states
   const handleApiCall = async (
     apiCall: () => Promise<void>,
     operation: string
@@ -87,8 +74,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setError(null);
     try {
       await apiCall();
-    } catch (err: any) {
-      const errorMessage = err.message || `${operation} failed`;
+    } catch (err: unknown) {
+      let errorMessage = `${operation} failed`;
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === "string") {
+        errorMessage = err;
+      }
+
       setError(errorMessage);
       console.error(`❌ ${operation} failed:`, err);
       throw err;
@@ -97,7 +91,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // 🔄 Fetch cart from API
   const refreshCart = async () => {
     try {
       const token = getToken();
@@ -116,8 +109,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (!res.ok) throw new Error("Failed to fetch cart");
 
       const data = await res.json();
-
-      const cartItems =
+      const cartItems: CartItem[] =
         data.products || data.cart?.products || data.items || data || [];
       setCart(cartItems);
       setIsAuthenticated(true);
@@ -128,22 +120,11 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // ➕ Add item to cart via API
-  const addToCart = async (item: {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-    color?: string;
-    size?: string;
-    image?: string;
-  }) => {
+  const addToCart = async (item: AddToCartItem) => {
     await handleApiCall(async () => {
       const token = getToken();
-
       if (!token) throw new Error("No token found");
 
-      // Check if item already exists in cart
       const existingItem = cart.find(
         (cartItem) =>
           cartItem.id === item.id &&
@@ -172,7 +153,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error("❌ AddToCart - Error response:", errorText);
         throw new Error(
           `Failed to add item to cart: ${res.status} ${errorText}`
         );
@@ -182,7 +162,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }, "Add to cart");
   };
 
-  // 📝 Update item quantity
   const updateQuantity = async (
     id: string,
     quantity: number,
@@ -199,7 +178,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (!token) throw new Error("No token found");
 
       const body = { quantity, color, size };
-
       const res = await fetch(`${API_BASE_URL}/cart/products/${id}`, {
         method: "PATCH",
         headers: {
@@ -219,39 +197,11 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       await refreshCart();
     }, "Update quantity");
   };
-  // 🗑️ Remove all items one by one (like removeFromCart)
-  const removeAllItems = async () => {
-    await handleApiCall(async () => {
-      const token = getToken();
-      if (!token) throw new Error("No token found");
 
-      // Loop through all items in the cart
-      for (const item of cart) {
-        await fetch(`${API_BASE_URL}/cart/products/${item.id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            color: item.color,
-            size: item.size,
-          }),
-        });
-      }
-
-      // Refresh cart after all items removed
-      await refreshCart();
-    }, "Remove all items");
-  };
-
-  // 🗑️ Remove item from cart
   const removeFromCart = async (id: string, color?: string, size?: string) => {
     await handleApiCall(async () => {
       const token = getToken();
       if (!token) throw new Error("No token found");
-
-      const body = { color, size };
 
       const res = await fetch(`${API_BASE_URL}/cart/products/${id}`, {
         method: "DELETE",
@@ -259,7 +209,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ color, size }),
       });
 
       if (!res.ok) {
@@ -271,13 +221,31 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }, "Remove from cart");
   };
 
-  // 🧹 Clear entire cart
+  const removeAllItems = async () => {
+    await handleApiCall(async () => {
+      const token = getToken();
+      if (!token) throw new Error("No token found");
+
+      for (const item of cart) {
+        await fetch(`${API_BASE_URL}/cart/products/${item.id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ color: item.color, size: item.size }),
+        });
+      }
+
+      await refreshCart();
+    }, "Remove all items");
+  };
+
   const clearCart = async () => {
     await handleApiCall(async () => {
       const token = getToken();
       if (!token) throw new Error("No token found");
 
-      // Try multiple possible clear endpoints
       const endpoints = [
         `${API_BASE_URL}/cart/clear`,
         `${API_BASE_URL}/cart`,
@@ -294,62 +262,45 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
               Authorization: `Bearer ${token}`,
             },
           });
-
           if (res.ok) {
             success = true;
             break;
           }
-        } catch (err) {
+        } catch {
           continue;
         }
       }
 
-      if (!success) {
-        throw new Error("Could not clear cart - no valid endpoint found");
-      }
-
+      if (!success) throw new Error("Could not clear cart");
       await refreshCart();
     }, "Clear cart");
   };
 
-  // 📊 Get total number of items in cart
-  const getCartItemCount = (): number => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
-  };
+  const getCartItemCount = () =>
+    cart.reduce((total, item) => total + item.quantity, 0);
 
-  // 🔍 Check if specific item variant is in cart
-  const isItemInCart = (id: string, color?: string, size?: string): boolean => {
-    return cart.some(
+  const isItemInCart = (id: string, color?: string, size?: string) =>
+    cart.some(
       (item) => item.id === id && item.color === color && item.size === size
     );
-  };
 
-  // 🔢 Get quantity of specific item variant
-  const getItemQuantity = (
-    id: string,
-    color?: string,
-    size?: string
-  ): number => {
+  const getItemQuantity = (id: string, color?: string, size?: string) => {
     const item = cart.find(
       (item) => item.id === id && item.color === color && item.size === size
     );
     return item ? item.quantity : 0;
   };
 
-  // Initialize cart on mount
   useEffect(() => {
     const token = getToken();
-
     if (token) {
       setIsAuthenticated(true);
-
       refreshCart();
     } else {
       setIsAuthenticated(false);
     }
   }, []);
 
-  // Listen for storage changes (token updates)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "token" || e.key === "authToken") {
@@ -368,35 +319,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Debug functions (development only)
-  useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      process.env.NODE_ENV === "development"
-    ) {
-      (window as any).cartDebug = {
-        cart,
-        total_price,
-        isAuthenticated,
-        isLoading,
-        error,
-        refreshCart,
-        clearCart,
-        getCartItemCount,
-        addTestItem: () =>
-          addToCart({
-            id: "test",
-            name: "Test Item",
-            price: 10,
-            quantity: 1,
-            color: "red",
-            size: "M",
-            image: "test.jpg",
-          }),
-      };
-    }
-  }, [cart, total_price, isAuthenticated, isLoading, error]);
-
   return (
     <CartContext.Provider
       value={{
@@ -408,12 +330,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         addToCart,
         updateQuantity,
         removeFromCart,
+        removeAllItems,
         clearCart,
         refreshCart,
         getCartItemCount,
         isItemInCart,
         getItemQuantity,
-        removeAllItems,
       }}
     >
       {children}

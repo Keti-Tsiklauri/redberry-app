@@ -1,8 +1,17 @@
 import { useState } from "react";
 import Image from "next/image";
 import InputField from "./InputField";
+interface PasswordFieldProps {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  required?: boolean;
+  disabled?: boolean;
+  show: boolean; // must exist
+  onToggleShow: () => void; // must exist
+}
 
-export default function PasswordField(props: any) {
+export default function PasswordField(props: PasswordFieldProps) {
   const [show, setShow] = useState(false);
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -13,8 +13,21 @@ import Logo from "../components/logo/Logo";
 import { useCart } from "../components/cart/CartContext";
 import { useUser } from "../components/context/UserContext";
 
+// Type for the API response
+interface LoginResponse {
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    // add more user fields if needed
+  };
+  token?: string;
+  errors?: Record<string, string[]>;
+  message?: string;
+}
+
 export default function Login() {
-  const [show, setShow] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -47,10 +60,10 @@ export default function Login() {
       });
 
       const contentType = response.headers.get("Content-Type") || "";
-      let data: any = {};
+      let data: LoginResponse = {};
 
       if (contentType.includes("application/json")) {
-        data = await response.json();
+        data = (await response.json()) as LoginResponse;
       } else {
         const text = await response.text();
         data = { message: text };
@@ -75,7 +88,7 @@ export default function Login() {
         router.push("/");
       } else {
         if (data.errors) {
-          const allErrors = Object.values(data.errors).flat() as string[];
+          const allErrors = Object.values(data.errors).flat();
           setBackendErrors(allErrors);
         } else if (data.message) {
           setBackendErrors([data.message]);
@@ -96,7 +109,7 @@ export default function Login() {
 
   return (
     <div>
-      {/* header */}
+      {/* Header */}
       <div className="flex w-[1920px] h-[80px] justify-between mx-auto">
         <Logo />
         <div className="flex flex-row gap-3 items-center">
@@ -115,7 +128,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Main Div */}
+      {/* Main Section */}
       <div className="flex flex-row">
         {/* Left Side */}
         <div className="flex-1">
@@ -158,8 +171,8 @@ export default function Login() {
                 placeholder="Password"
                 required
                 disabled={isLoading}
-                show={show}
-                onToggleShow={() => setShow((prev) => !prev)}
+                show={showPassword}
+                onToggleShow={() => setShowPassword((prev) => !prev)}
               />
 
               <div className="mt-[45px]">
