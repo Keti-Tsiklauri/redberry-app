@@ -1,4 +1,16 @@
 import Image from "next/image";
+import Link from "next/link";
+
 export default function Logo() {
-  return <Image src="/Logo.svg" alt="Logo" width={180} height={24} />;
+  return (
+    <Link href="/">
+      <Image
+        src="/Logo.svg"
+        alt="Logo"
+        width={180}
+        height={24}
+        className="cursor-pointer"
+      />
+    </Link>
+  );
 }
