@@ -17,10 +17,10 @@ export default function Checkout() {
   function handlePay() {
     if (checkout) {
       removeAllItems();
-      console.log("Checkout success, cart cleared!");
+
       setShowSuccessModal(true);
     } else {
-      console.log("Please fill all fields before checkout");
+      return;
     }
   }
 

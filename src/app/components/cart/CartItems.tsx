@@ -107,25 +107,25 @@ export default function CartItems() {
             </div>
 
             <div className="flex flex-col justify-between w-[343px] h-[117px]">
-              <div className="flex justify-between">
-                <div>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-row items-center justify-between">
                   <p className="font-poppins font-medium text-[14px] text-[#10151F]">
                     {item.name}
                   </p>
-                  {item.color && (
-                    <p className="font-poppins text-[12px] text-[#3E424A]">
-                      Color: {item.color}
-                    </p>
-                  )}
-                  {item.size && (
-                    <p className="font-poppins text-[12px] text-[#3E424A]">
-                      Size: {item.size}
-                    </p>
-                  )}
+                  <p className="font-poppins font-medium text-[18px] text-[#10151F]">
+                    ${item.total_price || item.price * item.quantity}
+                  </p>
                 </div>
-                <p className="font-poppins font-medium text-[18px] text-[#10151F]">
-                  ${item.total_price || item.price * item.quantity}
-                </p>
+                {item.color && (
+                  <p className="font-poppins text-[12px] text-[#3E424A]">
+                    Color: {item.color}
+                  </p>
+                )}
+                {item.size && (
+                  <p className="font-poppins text-[12px] text-[#3E424A]">
+                    Size: {item.size}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-between items-center mt-2">

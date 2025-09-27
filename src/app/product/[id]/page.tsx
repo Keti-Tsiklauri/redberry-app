@@ -352,20 +352,6 @@ export default function ProductDetailPage() {
                   Cart Error: {cartError}
                 </p>
               )}
-
-              {/* Debug info (development only) */}
-              {process.env.NODE_ENV === "development" && (
-                <div className="text-xs text-gray-500 mt-2 space-y-1">
-                  <p>Debug Info:</p>
-                  <p>- Cart items: {cart.length}</p>
-                  <p>- Authenticated: {isAuthenticated ? "Yes" : "No"}</p>
-                  <p>
-                    - Current item in cart: {isCurrentItemInCart ? "Yes" : "No"}
-                  </p>
-                  <p>- Current item quantity: {currentItemQuantity}</p>
-                  <p>- Cart loading: {cartLoading ? "Yes" : "No"}</p>
-                </div>
-              )}
             </div>
           </div>
 

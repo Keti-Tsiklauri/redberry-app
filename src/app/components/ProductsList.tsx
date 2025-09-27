@@ -80,7 +80,7 @@ export default function HomePage() {
           <p className="w-[190px] h-[63px] font-poppins font-semibold text-[42px] leading-[63px] text-[#10151F]">
             Products
           </p>
-          <div className="flex flex-row gap-8 w-[500px]">
+          <div className="flex flex-row gap-8 w-[400px]">
             <p className="text-gray-600 whitespace-nowrap">
               Showing {startResult}–{endResult} of {totalResults} results
             </p>

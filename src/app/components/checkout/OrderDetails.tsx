@@ -7,7 +7,7 @@ import { useGlobal } from "../context/globalcontext";
 
 export default function OrderDetails() {
   const { user } = useUser();
-  const { checkout, setCheckout } = useGlobal();
+  const { checkout, setCheckout, showSuccessModal } = useGlobal();
   const email = user?.email || "";
 
   // local state for inputs
@@ -26,6 +26,19 @@ export default function OrderDetails() {
     );
     setCheckout(allFilled);
   }, [formData, setCheckout]);
+
+  // reset fields when success modal is shown
+  useEffect(() => {
+    if (showSuccessModal) {
+      setFormData({
+        name: "",
+        surname: "",
+        email: "", // reset email too (can keep `email` if you want prefilled)
+        address: "",
+        zip: "",
+      });
+    }
+  }, [showSuccessModal]);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
