@@ -2,7 +2,7 @@ import { useCart } from "./CartContext";
 
 export default function CartSummary() {
   const { cart } = useCart();
-  const delivery = 5; // fixed delivery fee
+  const delivery = cart.length === 0 ? 0 : 5; // fixed delivery fee
 
   // Sum all items' total_price
   const cartTotal = cart.reduce(

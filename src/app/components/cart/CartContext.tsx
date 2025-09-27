@@ -37,6 +37,7 @@ interface CartContextType {
     size?: string
   ) => Promise<void>;
   removeFromCart: (id: string, color?: string, size?: string) => Promise<void>;
+  removeAllItems: (id: string, color?: string, size?: string) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
 
@@ -218,6 +219,31 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       await refreshCart();
     }, "Update quantity");
   };
+  // 🗑️ Remove all items one by one (like removeFromCart)
+  const removeAllItems = async () => {
+    await handleApiCall(async () => {
+      const token = getToken();
+      if (!token) throw new Error("No token found");
+
+      // Loop through all items in the cart
+      for (const item of cart) {
+        await fetch(`${API_BASE_URL}/cart/products/${item.id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            color: item.color,
+            size: item.size,
+          }),
+        });
+      }
+
+      // Refresh cart after all items removed
+      await refreshCart();
+    }, "Remove all items");
+  };
 
   // 🗑️ Remove item from cart
   const removeFromCart = async (id: string, color?: string, size?: string) => {
@@ -387,6 +413,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         getCartItemCount,
         isItemInCart,
         getItemQuantity,
+        removeAllItems,
       }}
     >
       {children}

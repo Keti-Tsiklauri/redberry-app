@@ -9,7 +9,7 @@ import OrderDetails from "../components/checkout/OrderDetails";
 import { useUser } from "../components/context/userContext";
 
 export default function Checkout() {
-  const { cart } = useCart();
+  const { cart, removeAllItems } = useCart();
 
   return (
     <div>
@@ -38,7 +38,8 @@ export default function Checkout() {
             )}
           </div>
           <div className="flex flex-col justify-between h-[250px]">
-            <CartSummary /> <Button text="Pay" width="460px" />
+            <CartSummary />{" "}
+            <Button text="Pay" width="460px" onClick={removeAllItems} />
           </div>
         </div>
       </div>
