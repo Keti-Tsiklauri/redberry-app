@@ -26,15 +26,14 @@ export default function Checkout() {
 
   return (
     <div>
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-white bg-opacity-50 z-[9999] ">
+          <SuccessModal />
+        </div>
+      )}
+
       <Header />
       <div className="relative">
-        {/* ✅ Show modal on top */}
-        {showSuccessModal && (
-          <div className="absolute inset-0  bg-white bg-opacity-50 z-50">
-            <SuccessModal />
-          </div>
-        )}
-
         <p className=" top-[152px] mx-auto py-[10px] w-[1920px] h-[63px] font-poppins font-semibold text-[42px] leading-[63px] text-[#10151F]">
           Checkout
         </p>
