@@ -12,8 +12,8 @@ interface User {
 interface UserContextType {
   user: User | null;
   token: string | null;
+  ready: boolean;
   setUser: (user: User | null, token?: string | null) => void;
-  logout: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -21,12 +21,17 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUserState] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
+  // Initialize user from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("userData");
     const storedToken = localStorage.getItem("authToken");
+
     if (storedUser) setUserState(JSON.parse(storedUser));
     if (storedToken) setToken(storedToken);
+
+    setReady(true);
   }, []);
 
   const setUser = (user: User | null, token?: string | null) => {
@@ -35,28 +40,27 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       setToken(token);
       localStorage.setItem("authToken", token);
     }
-    if (user) localStorage.setItem("userData", JSON.stringify(user));
-    else {
+
+    if (user) {
+      localStorage.setItem("userData", JSON.stringify(user));
+    } else {
       localStorage.removeItem("userData");
       localStorage.removeItem("authToken");
+      setToken(null);
     }
-  };
 
-  const logout = () => {
-    setUserState(null);
-    setToken(null);
-    localStorage.removeItem("userData");
-    localStorage.removeItem("authToken");
+    // Notify other components that user has changed
     window.dispatchEvent(new Event("authStateChanged"));
   };
 
   return (
-    <UserContext.Provider value={{ user, token, setUser, logout }}>
+    <UserContext.Provider value={{ user, token, ready, setUser }}>
       {children}
     </UserContext.Provider>
   );
 };
 
+// Custom hook
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) throw new Error("useUser must be used within UserProvider");

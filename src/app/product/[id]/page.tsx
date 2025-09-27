@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useCart } from "@/app/components/cart/CartContext";
 import Button from "@/app/components/button/Button";
 import Header from "@/app/components/auth/Header";
+import { useUser } from "@/app/components/context/UserContext";
 
 interface Brand {
   id: number;
@@ -30,7 +31,7 @@ interface Product {
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
+  const { user, token, ready } = useUser();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,6 +84,7 @@ export default function ProductDetailPage() {
     if (product?.images?.[index]) setSelectedImage(product.images[index]);
   };
 
+  if (!ready) return <div>Loading...</div>;
   const handleImageClick = (image: string, index: number) => {
     setSelectedImage(image);
     if (product?.available_colors?.[index])

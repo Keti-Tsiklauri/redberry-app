@@ -8,7 +8,13 @@ import { useUser } from "../context/UserContext";
 
 export default function Header() {
   const { showCart, setShowCart } = useGlobal();
-  const { user } = useUser(); // get user from context
+
+  const { user, token, ready } = useUser();
+
+  if (!ready) return <div>Loading...</div>;
+
+  // Safe to use user and token now
+  console.log(user, token);
 
   return (
     <header className="flex justify-between items-center mx-auto py-[10px] w-[1920px] h-[80px] bg-white">

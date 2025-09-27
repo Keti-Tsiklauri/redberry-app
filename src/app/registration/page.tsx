@@ -25,7 +25,7 @@ type BackendErrors = {
 
 export default function Registration() {
   const router = useRouter();
-  const { setUser, logout } = useUser(); // useUser for context management
+  const { setUser } = useUser(); // useUser for context management
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -36,9 +36,6 @@ export default function Registration() {
   const [backendErrors, setBackendErrors] = useState<BackendErrors>({});
 
   // Clear user state and localStorage on initial load
-  useEffect(() => {
-    logout();
-  }, [logout]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
