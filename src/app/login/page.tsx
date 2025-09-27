@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, FormEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -10,6 +11,7 @@ import Button from "../components/button/Button";
 import GeneralError from "../components/auth/GeneralError";
 import Logo from "../components/logo/Logo";
 import { useCart } from "../components/cart/CartContext";
+import { useUser } from "../components/context/userContext";
 
 export default function Login() {
   const [show, setShow] = useState(true);
@@ -17,7 +19,9 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [backendErrors, setBackendErrors] = useState<string[]>([]);
+
   const { refreshCart } = useCart();
+  const { setUser } = useUser();
   const router = useRouter();
 
   const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
@@ -52,28 +56,22 @@ export default function Login() {
         data = { message: text };
       }
 
-      if (response.ok) {
-        if (data.token) {
-          localStorage.setItem("authToken", data.token);
-          await refreshCart();
-          // Optional: cookie backup
-          document.cookie = `authToken=${data.token}; path=/;`;
+      if (response.ok && data.user && data.token) {
+        // Save user in UserContext
+        setUser(data.user, data.token);
 
-          // Tell other contexts (like Cart) that auth changed
-          window.dispatchEvent(new Event("authStateChanged"));
-        }
+        // Refresh cart
+        await refreshCart();
 
-        if (data.user) {
-          localStorage.setItem("userData", JSON.stringify(data.user));
-          localStorage.setItem("userId", data.user.id.toString());
-          localStorage.setItem("userEmail", data.user.email);
-          localStorage.setItem("username", data.user.username);
-        }
+        // Optional cookie backup
+        document.cookie = `authToken=${data.token}; path=/;`;
 
+        // Clear form and errors
         setEmail("");
         setPassword("");
         setBackendErrors([]);
 
+        // Redirect home
         router.push("/");
       } else {
         if (data.errors) {
@@ -116,6 +114,7 @@ export default function Login() {
           </Link>
         </div>
       </div>
+
       {/* Main Div */}
       <div className="flex flex-row">
         {/* Left Side */}

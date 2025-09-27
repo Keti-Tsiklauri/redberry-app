@@ -1,21 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import Logo from "../logo/Logo";
 import Cart from "../cart/Cart";
 import { useGlobal } from "../context/globalcontext";
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  avatar: string | null;
-}
+import { useUser } from "../context/userContext";
 
 export default function Header() {
-  const [user, setUser] = useState<User | null>(null);
   const { showCart, setShowCart } = useGlobal();
+  const { user } = useUser(); // get user from context
 
   return (
     <header className="flex justify-between items-center mx-auto py-[10px] w-[1920px] h-[80px] bg-white">
@@ -51,6 +44,13 @@ export default function Header() {
               alt="placeholder avatar"
               className="rounded-full"
             />
+          )}
+
+          {/* Username */}
+          {user?.username && (
+            <p className="font-poppins font-medium text-[14px] leading-[21px] text-[#10151F]">
+              {user.username}
+            </p>
           )}
         </div>
       </div>

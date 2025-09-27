@@ -11,7 +11,7 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export function GlobalProvider({ children }: { children: ReactNode }) {
   const [showCart, setShowCart] = useState(false);
-
+  const [user, setUser] = useState();
   return (
     <GlobalContext.Provider value={{ showCart, setShowCart }}>
       {children}
