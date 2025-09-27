@@ -115,7 +115,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (!res.ok) throw new Error("Failed to fetch cart");
 
       const data = await res.json();
-      console.log("🛒 Cart API raw response:", data);
 
       const cartItems =
         data.products || data.cart?.products || data.items || data || [];
@@ -140,7 +139,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   }) => {
     await handleApiCall(async () => {
       const token = getToken();
-      console.log("🔍 AddToCart - Token exists:", !!token);
 
       if (!token) throw new Error("No token found");
 
@@ -152,8 +150,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           cartItem.size === item.size
       );
 
-      console.log("🔍 AddToCart - Existing item found:", !!existingItem);
-
       const body = {
         quantity: existingItem
           ? existingItem.quantity + item.quantity
@@ -163,12 +159,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       };
 
       const method = existingItem ? "PATCH" : "POST";
-      console.log("📡 AddToCart - Method:", method);
-      console.log("📡 AddToCart - Body:", body);
-      console.log(
-        "📡 AddToCart - URL:",
-        `${API_BASE_URL}/cart/products/${item.id}`
-      );
 
       const res = await fetch(`${API_BASE_URL}/cart/products/${item.id}`, {
         method,
@@ -179,9 +169,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         body: JSON.stringify(body),
       });
 
-      console.log("📡 AddToCart - Response status:", res.status);
-      console.log("📡 AddToCart - Response ok:", res.ok);
-
       if (!res.ok) {
         const errorText = await res.text();
         console.error("❌ AddToCart - Error response:", errorText);
@@ -190,10 +177,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         );
       }
 
-      const responseData = await res.json();
-      console.log("📡 AddToCart - Success response:", responseData);
-
-      console.log("🔄 AddToCart - Refreshing cart...");
       await refreshCart();
     }, "Add to cart");
   };
@@ -330,19 +313,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   // Initialize cart on mount
   useEffect(() => {
     const token = getToken();
-    console.log("🚀 CartProvider initialized");
-    console.log("🔑 Token found:", !!token);
-    console.log(
-      "🔑 Token source:",
-      localStorage.getItem("authToken") ? "authToken" : "token"
-    );
 
     if (token) {
       setIsAuthenticated(true);
-      console.log("🔄 Initial cart refresh...");
+
       refreshCart();
     } else {
-      console.log("❌ No token found on initialization");
       setIsAuthenticated(false);
     }
   }, []);
@@ -351,14 +327,11 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "token" || e.key === "authToken") {
-        console.log("🔄 Token change detected, refreshing auth state");
         const token = getToken();
         if (token) {
-          console.log("✅ New token found, refreshing cart");
           setIsAuthenticated(true);
           refreshCart();
         } else {
-          console.log("❌ Token removed, clearing cart");
           setIsAuthenticated(false);
           setCart([]);
         }

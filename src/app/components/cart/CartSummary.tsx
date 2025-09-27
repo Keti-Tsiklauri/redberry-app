@@ -13,9 +13,6 @@ export default function CartSummary() {
   // Total including delivery
   const total = cartTotal + delivery;
 
-  console.log("Cart total:", cartTotal);
-  console.log("Total with delivery:", total);
-
   return (
     <div className=" w-[460px] h-[110px]  flex flex-col gap-4">
       {/* Subtotal */}

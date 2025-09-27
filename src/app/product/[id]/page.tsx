@@ -54,11 +54,6 @@ export default function ProductDetailPage() {
     isItemInCart,
   } = useCart();
 
-  useEffect(() => {
-    console.log("🛒 Cart updated:", cart);
-    console.log("🔐 Is authenticated:", isAuthenticated);
-  }, [cart, isAuthenticated]);
-
   // Fetch product details
   useEffect(() => {
     if (!id) return;
