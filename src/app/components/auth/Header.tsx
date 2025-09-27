@@ -24,35 +24,37 @@ export default function Header() {
           className="cursor-pointer"
           onClick={() => setShowCart(true)}
         />
-        <div className="flex gap-2 items-center">
-          {/* Avatar */}
-          {user?.avatar ? (
-            <div className="w-10 h-10 rounded-full overflow-hidden flex-none">
+
+        {/* Only show user info if logged in */}
+        {user && (
+          <div className="flex gap-2 items-center">
+            {/* Avatar */}
+            {user.avatar ? (
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-none">
+                <Image
+                  src={user.avatar}
+                  width={40}
+                  height={40}
+                  alt={`${user.username} avatar`}
+                  className="rounded-full"
+                />
+              </div>
+            ) : (
               <Image
-                src={user.avatar}
+                src="/person-placeholder.svg"
                 width={40}
                 height={40}
-                alt={`${user.username} avatar`}
+                alt="placeholder avatar"
                 className="rounded-full"
               />
-            </div>
-          ) : (
-            <Image
-              src="/person-placeholder.svg"
-              width={40}
-              height={40}
-              alt="placeholder avatar"
-              className="rounded-full"
-            />
-          )}
+            )}
 
-          {/* Username */}
-          {user?.username && (
+            {/* Username */}
             <p className="font-poppins font-medium text-[14px] leading-[21px] text-[#10151F]">
               {user.username}
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </header>
   );

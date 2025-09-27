@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import Logo from "../components/logo/Logo";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AuthForm from "../components/auth/AuthForm";
 import AvatarUpload from "../components/auth/AvatarUpload";
 import GeneralError from "../components/auth/GeneralError";
 import Link from "next/link";
+import { useUser } from "../components/context/userContext";
 
 const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 const REGISTER_ENDPOINT = "/register";
@@ -22,31 +23,22 @@ type BackendErrors = {
   general?: string[];
 };
 
-type ApiResponse = {
-  message?: string;
-  errors?: BackendErrors;
-  success?: boolean;
-  token?: string;
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-    avatar?: string;
-  };
-  [key: string]: unknown;
-};
-
 export default function Registration() {
   const router = useRouter();
+  const { setUser, logout } = useUser(); // useUser for context management
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [avatar, setAvatar] = useState<File | null>(null);
-  const [show, setShow] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [backendErrors, setBackendErrors] = useState<BackendErrors>({});
+
+  // Clear user state and localStorage on initial load
+  useEffect(() => {
+    logout();
+  }, [logout]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,22 +66,17 @@ export default function Registration() {
   const handleAvatarRemove = () => {
     setAvatar(null);
     const fileInput = document.getElementById("avatar") as HTMLInputElement;
-    if (fileInput) {
-      fileInput.value = "";
-    }
+    if (fileInput) fileInput.value = "";
     if (backendErrors.avatar) {
       setBackendErrors((prev) => ({ ...prev, avatar: undefined }));
     }
   };
 
   const handleInputChange = (field: keyof BackendErrors, value: string) => {
-    if (backendErrors[field]) {
+    if (backendErrors[field])
       setBackendErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-
-    if (backendErrors.general) {
+    if (backendErrors.general)
       setBackendErrors((prev) => ({ ...prev, general: undefined }));
-    }
 
     switch (field) {
       case "username":
@@ -138,7 +125,7 @@ export default function Registration() {
       });
 
       const contentType = response.headers.get("Content-Type") || "";
-      let data: ApiResponse = {};
+      let data: any = {};
 
       if (contentType.includes("application/json")) {
         data = await response.json();
@@ -147,25 +134,20 @@ export default function Registration() {
         data = { message: text };
       }
 
-      if (response.ok) {
-        if (data.token) {
-          localStorage.setItem("authToken", data.token);
-          document.cookie = `authToken=${data.token}; path=/;`;
-        }
+      if (response.ok && data.user && data.token) {
+        // Save user in context
+        setUser(data.user, data.token);
 
-        if (data.user) {
-          localStorage.setItem("userData", JSON.stringify(data.user));
-          if (data.user.id) {
-            localStorage.setItem("userId", data.user.id.toString());
-          }
-          if (data.user.email) {
-            localStorage.setItem("userEmail", data.user.email);
-          }
-          if (data.user.username) {
-            localStorage.setItem("username", data.user.username);
-          }
-        }
+        // Save in localStorage
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("userData", JSON.stringify(data.user));
+        localStorage.setItem("userId", data.user.id.toString());
+        localStorage.setItem("username", data.user.username);
+        localStorage.setItem("userEmail", data.user.email);
 
+        document.cookie = `authToken=${data.token}; path=/;`;
+
+        // Reset form
         setUsername("");
         setEmail("");
         setPassword("");
@@ -173,11 +155,10 @@ export default function Registration() {
         setAvatar(null);
         setBackendErrors({});
 
-        router.push("/");
+        router.push("/"); // redirect home
         return;
       }
 
-      // Always rely on backend messages
       if (data.errors) {
         setBackendErrors(data.errors);
       } else if (data.message) {
@@ -191,21 +172,8 @@ export default function Registration() {
       }
     } catch (err: unknown) {
       let errorMessage = "Network error. Please try again.";
-
-      if (err instanceof Error) {
-        if (err.name === "AbortError") {
-          errorMessage = "Request timeout. Please try again.";
-        } else if (err.message.includes("Failed to fetch")) {
-          errorMessage =
-            "Cannot connect to server. Please check your internet connection.";
-        } else if (err.message.includes("NetworkError")) {
-          errorMessage = "Network error. Please check your connection.";
-        }
-      }
-
-      setBackendErrors({
-        general: [errorMessage],
-      });
+      if (err instanceof Error) errorMessage = err.message;
+      setBackendErrors({ general: [errorMessage] });
     } finally {
       setIsLoading(false);
     }
@@ -213,7 +181,7 @@ export default function Registration() {
 
   return (
     <div>
-      {/* header */}
+      {/* Header */}
       <div className="flex w-[1920px] h-[80px] justify-between mx-auto">
         <Logo />
         <div className="flex flex-row gap-3 items-center">
@@ -227,10 +195,12 @@ export default function Registration() {
             href="./login"
             className="font-poppins font-medium text-[12px] leading-[18px] text-[#10151F] cursor-pointer"
           >
-            Log in{" "}
+            Log in
           </Link>
         </div>
       </div>
+
+      {/* Main */}
       <div className="flex flex-row">
         {/* Left */}
         <div className="flex-1">
