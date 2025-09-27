@@ -3,18 +3,21 @@ import Image from "next/image";
 import { useState } from "react";
 
 interface InputProps {
-  label: string;
+  label?: string;
   width?: string;
   height?: string;
   imageSrc?: string;
+  defaultValue?: string;
 }
+
 export default function InputField({
   label,
   width = "277px",
   height = "42px",
   imageSrc,
+  defaultValue,
 }: InputProps) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(defaultValue || "");
 
   return (
     <div

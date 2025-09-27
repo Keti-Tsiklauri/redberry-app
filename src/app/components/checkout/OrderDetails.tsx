@@ -1,9 +1,12 @@
+"use client";
+
 import { useUser } from "../context/userContext";
 import InputField from "./InputField";
 
 export default function OrderDetails() {
   const { user } = useUser();
-  console.log("user", user);
+  console.log(user);
+  const email = user?.email;
   return (
     <div className="w-[1129px] h-[635px] bg-[#F8F6F7] rounded-[16px] p-[80px_47px] ">
       <p className="w-[144px] h-[33px] font-poppins font-medium text-[22px] leading-[33px] text-[#3E424A]">
@@ -17,7 +20,7 @@ export default function OrderDetails() {
 
         {/* email */}
 
-        <InputField label="Email" width="578px" imageSrc="/mail.svg" />
+        <InputField width="578px" imageSrc="/mail.svg" defaultValue={email} />
         <div className="flex flex-row gap-5 ">
           <InputField label="Address" />
           <InputField label="Zip code" />

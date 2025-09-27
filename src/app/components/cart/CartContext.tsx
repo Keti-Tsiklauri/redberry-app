@@ -69,7 +69,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAuthenticated(false);
       setCart([]);
     }
-  }, [localStorage.getItem("token"), localStorage.getItem("authToken")]);
+  }, []);
 
   // Calculate total price
   const total_price = cart.reduce(
