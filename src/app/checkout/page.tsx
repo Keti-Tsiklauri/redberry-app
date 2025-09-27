@@ -6,7 +6,7 @@ import CartItems from "../components/cart/CartItems";
 import CartSummary from "../components/cart/CartSummary";
 import Header from "../components/auth/Header";
 import OrderDetails from "../components/checkout/OrderDetails";
-import { useUser } from "../components/context/userContext";
+
 import { useGlobal } from "../components/context/globalcontext";
 import SuccessModal from "../components/modal/SuccessModal";
 

@@ -11,7 +11,7 @@ import Button from "../components/button/Button";
 import GeneralError from "../components/auth/GeneralError";
 import Logo from "../components/logo/Logo";
 import { useCart } from "../components/cart/CartContext";
-import { useUser } from "../components/context/userContext";
+import { useUser } from "../components/context/UserContext";
 
 export default function Login() {
   const [show, setShow] = useState(true);

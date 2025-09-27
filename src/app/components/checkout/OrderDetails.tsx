@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "../context/userContext";
+import { useUser } from "../context/UserContext";
 import InputField from "./InputField";
 import { useGlobal } from "../context/globalcontext";
 

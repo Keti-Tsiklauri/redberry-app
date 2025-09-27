@@ -8,7 +8,7 @@ import AuthForm from "../components/auth/AuthForm";
 import AvatarUpload from "../components/auth/AvatarUpload";
 import GeneralError from "../components/auth/GeneralError";
 import Link from "next/link";
-import { useUser } from "../components/context/userContext";
+import { useUser } from "../components/context/UserContext";
 
 const API_BASE_URL = "https://api.redseam.redberryinternship.ge/api";
 const REGISTER_ENDPOINT = "/register";

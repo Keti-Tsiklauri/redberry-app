@@ -4,7 +4,7 @@ import Image from "next/image";
 import Logo from "../logo/Logo";
 import Cart from "../cart/Cart";
 import { useGlobal } from "../context/globalcontext";
-import { useUser } from "../context/userContext";
+import { useUser } from "../context/UserContext";
 
 export default function Header() {
   const { showCart, setShowCart } = useGlobal();
