@@ -8,7 +8,7 @@ export default function Logo() {
     <Link href="/">
       <Image
         src="/mail.svg"
-        alt="Logo"
+        alt="temporary"
         width={180}
         height={24}
         className="cursor-pointer"
