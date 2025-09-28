@@ -7,7 +7,7 @@ export default function Logo() {
   return (
     <Link href="/">
       <Image
-        src="/icon-logo.svg"
+        src="/mail.svg"
         alt="Logo"
         width={180}
         height={24}
