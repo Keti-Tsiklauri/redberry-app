@@ -93,6 +93,9 @@ export default function ProductDetailPage() {
       setSelectedColor(product.available_colors[index]);
   };
 
+  // Define actual auth check
+  const hasAuth = isAuthenticated || (!!user && !!token);
+
   const handleAddToCart = async () => {
     if (!product || !selectedColor || !selectedSize) {
       setAddMessage("Please select color and size");
@@ -100,7 +103,7 @@ export default function ProductDetailPage() {
       return;
     }
 
-    if (!isAuthenticated) {
+    if (!hasAuth) {
       setAddMessage("Please log in to add items to cart");
       setTimeout(() => setAddMessage(""), 3000);
       return;
@@ -325,7 +328,7 @@ export default function ProductDetailPage() {
 
             {/* Messages */}
             <div className="min-h-[60px] space-y-2">
-              {!isAuthenticated && (
+              {!hasAuth && (
                 <div className="text-sm">
                   <p className="text-amber-600 inline mr-2">
                     Please log in to add items to the cart.
